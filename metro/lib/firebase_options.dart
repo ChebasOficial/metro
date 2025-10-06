@@ -64,7 +64,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '210888569709',
     projectId: 'metro-31d1d',
     storageBucket: 'metro-31d1d.firebasestorage.app',
-    iosBundleId: 'com.example.metro',
+    iosBundleId: 'com.pii.metro',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -73,7 +73,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '210888569709',
     projectId: 'metro-31d1d',
     storageBucket: 'metro-31d1d.firebasestorage.app',
-    iosBundleId: 'com.example.metro',
+    iosBundleId: 'com.pii.metro',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
