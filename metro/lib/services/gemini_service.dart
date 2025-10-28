@@ -28,9 +28,16 @@ class GeminiService {
   }) async {
     try {
       // Baixar imagem
-      final response = await HttpClient().getUrl(Uri.parse(imageUrl));
-      final List<int> bytesList = await response.close().then((res) => res.toBytes());
-      final Uint8List bytes = Uint8List.fromList(bytesList);
+      final httpClient = HttpClient();
+      final request = await httpClient.getUrl(Uri.parse(imageUrl));
+      final response = await request.close();
+      
+      // Converter para Uint8List
+      final List<int> bytesList = await response.fold<List<int>>(
+        [],
+        (previous, element) => previous..addAll(element),
+      );
+      final Uint8List imageBytes = Uint8List.fromList(bytesList);
 
       // Preparar prompt
       String prompt = _buildAnalysisPrompt(constructionPhase, bimData);
@@ -39,7 +46,7 @@ class GeminiService {
       final content = [
         Content.multi([
           TextPart(prompt),
-          DataPart('image/jpeg', bytes),
+          DataPart('image/jpeg', imageBytes),
         ])
       ];
 
@@ -197,14 +204,25 @@ class GeminiService {
     String imageUrl2,
   ) async {
     try {
-      // Baixar ambas as imagens
-      final response1 = await HttpClient().getUrl(Uri.parse(imageUrl1));
-      final List<int> bytesList1 = await response1.close().then((res) => res.toBytes());
-      final Uint8List bytes1 = Uint8List.fromList(bytesList1);
+      final httpClient = HttpClient();
       
-      final response2 = await HttpClient().getUrl(Uri.parse(imageUrl2));
-      final List<int> bytesList2 = await response2.close().then((res) => res.toBytes());
-      final Uint8List bytes2 = Uint8List.fromList(bytesList2);
+      // Baixar primeira imagem
+      final request1 = await httpClient.getUrl(Uri.parse(imageUrl1));
+      final response1 = await request1.close();
+      final List<int> bytesList1 = await response1.fold<List<int>>(
+        [],
+        (previous, element) => previous..addAll(element),
+      );
+      final Uint8List imageBytes1 = Uint8List.fromList(bytesList1);
+      
+      // Baixar segunda imagem
+      final request2 = await httpClient.getUrl(Uri.parse(imageUrl2));
+      final response2 = await request2.close();
+      final List<int> bytesList2 = await response2.fold<List<int>>(
+        [],
+        (previous, element) => previous..addAll(element),
+      );
+      final Uint8List imageBytes2 = Uint8List.fromList(bytesList2);
 
       // Preparar prompt de comparação
       String prompt = '''
@@ -221,8 +239,8 @@ Forneça a resposta em formato JSON estruturado.
       final content = [
         Content.multi([
           TextPart(prompt),
-          DataPart('image/jpeg', bytes1),
-          DataPart('image/jpeg', bytes2),
+          DataPart('image/jpeg', imageBytes1),
+          DataPart('image/jpeg', imageBytes2),
         ])
       ];
 
@@ -240,17 +258,6 @@ Forneça a resposta em formato JSON estruturado.
       debugPrint('Erro ao comparar imagens: $e');
       return null;
     }
-  }
-}
-
-// Extensão para converter Stream de bytes em lista
-extension StreamToBytes on HttpClientResponse {
-  Future<List<int>> toBytes() async {
-    final List<int> bytes = [];
-    await for (var chunk in this) {
-      bytes.addAll(chunk);
-    }
-    return bytes;
   }
 }
 

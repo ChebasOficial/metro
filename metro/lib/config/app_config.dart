@@ -57,12 +57,6 @@ class AppConfig {
       backgroundColor: primaryColor,
       foregroundColor: Colors.white,
     ),
-    cardTheme: CardTheme(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(radiusNormal),
-      ),
-    ),
     inputDecorationTheme: InputDecorationTheme(
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusNormal),
@@ -93,12 +87,6 @@ class AppConfig {
     appBarTheme: const AppBarTheme(
       centerTitle: true,
       elevation: 0,
-    ),
-    cardTheme: CardTheme(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(radiusNormal),
-      ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       border: OutlineInputBorder(
