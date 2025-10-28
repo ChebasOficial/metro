@@ -1,5 +1,6 @@
-package com.example.metro
+package com.pii.metro
 
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity()
+

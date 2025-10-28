@@ -15,7 +15,8 @@ import 'screens/settings/settings_screen.dart';
 import 'screens/projects/projects_list_screen.dart';
 import 'config/app_config.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
