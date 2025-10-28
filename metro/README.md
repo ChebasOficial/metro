@@ -1,16 +1,80 @@
-# metro
+# Metro SP - Monitoramento de Obras
 
-A new Flutter project.
+Aplicativo Flutter para monitoramento automatizado de obras do Metrô de São Paulo, utilizando visão computacional, inteligência artificial e integração com BIM.
 
-## Getting Started
+## 🎯 Funcionalidades
 
-This project is a starting point for a Flutter application.
+- ✅ Autenticação de usuários com Firebase Auth
+- ✅ Gerenciamento de projetos/obras
+- ✅ Captura de imagens do canteiro de obras
+- ✅ Organização cronológica de registros visuais
+- ✅ Análise automática com Gemini AI
+- ✅ Comparação com modelo BIM (IFC)
+- ✅ Sistema de alertas e desvios
+- ✅ Estimativa automática de progresso
+- ✅ Interface multiplataforma (Web, Desktop, Mobile)
 
-A few resources to get you started if this is your first Flutter project:
+## 🛠️ Tecnologias Utilizadas
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Frontend
+- **Flutter** (Dart) - Framework multiplataforma
+- **Provider** - Gerenciamento de estado
+- **Google Maps Flutter** - Visualização de mapas
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Backend & Serviços
+- **Firebase Authentication** - Autenticação de usuários
+- **Cloud Firestore** - Banco de dados NoSQL
+- **Firebase Storage** - Armazenamento de imagens
+- **Firebase Cloud Functions** - Processamento serverless
+- **Google Gemini AI** - Análise de imagens com IA
+
+## 📋 Pré-requisitos
+
+- Flutter SDK (>=3.5.0)
+- Dart SDK
+- Firebase CLI
+- Conta Google Cloud (para Gemini AI)
+
+## 🚀 Configuração do Projeto
+
+### 1. Instale as dependências
+
+\`\`\`bash
+flutter pub get
+\`\`\`
+
+### 2. Configure o Firebase
+
+1. Crie um projeto no Firebase Console
+2. Execute: \`flutterfire configure\`
+3. Configure Firestore, Storage e Authentication
+
+### 3. Configure o Gemini AI
+
+Adicione sua API Key em \`lib/services/gemini_service.dart\`
+
+## 🏃 Executando
+
+\`\`\`bash
+flutter run
+\`\`\`
+
+## 📁 Estrutura
+
+\`\`\`
+lib/
+├── config/       # Configurações
+├── models/       # Modelos de dados
+├── screens/      # Telas
+├── services/     # Serviços
+├── widgets/      # Widgets
+└── utils/        # Utilitários
+\`\`\`
+
+## 👥 Roles
+
+- **Admin**: Acesso total
+- **Engenheiro**: Gerenciamento de projetos
+- **Fiscal**: Captura e alertas
+- **Visualizador**: Apenas visualização
+
