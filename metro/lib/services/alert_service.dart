@@ -72,6 +72,37 @@ class AlertService {
             .toList());
   }
 
+  // Obter todos os alertas
+  Stream<List<AlertModel>> getAllAlerts() {
+    return _firestore
+        .collection('alerts')
+        .orderBy('detectedAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => AlertModel.fromFirestore(doc))
+            .toList());
+  }
+
+  // Obter alertas com filtros opcionais
+  Stream<List<AlertModel>> getAlerts({String? severity, String? status}) {
+    Query query = _firestore.collection('alerts');
+    
+    if (severity != null) {
+      query = query.where('severity', isEqualTo: severity);
+    }
+    
+    if (status != null) {
+      query = query.where('status', isEqualTo: status);
+    }
+    
+    return query
+        .orderBy('detectedAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => AlertModel.fromFirestore(doc))
+            .toList());
+  }
+
   // Obter alertas por status
   Stream<List<AlertModel>> getAlertsByStatus(
     String projectId,
@@ -133,14 +164,14 @@ class AlertService {
 
   // Resolver alerta
   Future<void> resolveAlert(
-    String alertId,
-    String resolution,
-  ) async {
+    String alertId, {
+    String? resolution,
+  }) async {
     try {
       await _firestore.collection('alerts').doc(alertId).update({
-        'status': 'resolvido',
+        'status': 'resolved',
         'resolvedAt': Timestamp.now(),
-        'resolution': resolution,
+        if (resolution != null) 'resolution': resolution,
         'updatedAt': Timestamp.now(),
       });
     } catch (e) {

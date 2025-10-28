@@ -89,13 +89,15 @@ class ImageService {
         id: '',
         projectId: projectId,
         capturePointId: capturePointId,
-        imageId: imageId, // Agora é o ID do documento no Firestore
+        imageUrl: imageId, // URL da imagem
+        thumbnailUrl: imageId, // Mesma URL por enquanto
         capturedBy: userId,
+        capturedByName: 'Usuário', // TODO: Buscar nome real do usuário
         captureDate: DateTime.now(),
-        description: description,
         analysisStatus: 'pending',
         metadata: metadata,
         createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       DocumentReference docRef = await _firestore

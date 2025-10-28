@@ -101,7 +101,7 @@ class ProfileScreen extends StatelessWidget {
                   title: const Text('Editar Perfil'),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
-                    // TODO: Navegar para edição de perfil
+                    Navigator.of(context).pushNamed('/edit-profile');
                   },
                 ),
                 const Divider(height: 1),
@@ -110,7 +110,7 @@ class ProfileScreen extends StatelessWidget {
                   title: const Text('Alterar Senha'),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
-                    // TODO: Navegar para alteração de senha
+                    Navigator.of(context).pushNamed('/change-password');
                   },
                 ),
                 const Divider(height: 1),
@@ -119,7 +119,7 @@ class ProfileScreen extends StatelessWidget {
                   title: const Text('Configurações'),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
-                    // TODO: Navegar para configurações
+                    Navigator.of(context).pushNamed('/settings');
                   },
                 ),
               ],

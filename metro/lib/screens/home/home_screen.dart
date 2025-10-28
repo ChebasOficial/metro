@@ -73,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.notifications),
             onPressed: () {
-              // TODO: Navegar para tela de notificações
+              Navigator.of(context).pushNamed('/alerts');
             },
           ),
           IconButton(
@@ -261,7 +261,7 @@ class _DashboardPage extends StatelessWidget {
               label: 'Capturar Imagem',
               color: AppConfig.primaryColor,
               onTap: () {
-                // TODO: Navegar para captura de imagem
+                Navigator.of(context).pushNamed('/capture');
               },
             ),
             const SizedBox(height: AppConfig.paddingSmall),
@@ -278,11 +278,31 @@ class _DashboardPage extends StatelessWidget {
           const SizedBox(height: AppConfig.paddingSmall),
           
           _ActionButton(
-            icon: Icons.timeline,
-            label: 'Linha do Tempo',
+            icon: Icons.photo_library,
+            label: 'Galeria de Imagens',
             color: AppConfig.accentColor,
             onTap: () {
-              // TODO: Navegar para linha do tempo
+              Navigator.of(context).pushNamed('/gallery');
+            },
+          ),
+          const SizedBox(height: AppConfig.paddingSmall),
+          
+          _ActionButton(
+            icon: Icons.warning,
+            label: 'Ver Alertas',
+            color: AppConfig.warningColor,
+            onTap: () {
+              Navigator.of(context).pushNamed('/alerts');
+            },
+          ),
+          const SizedBox(height: AppConfig.paddingSmall),
+          
+          _ActionButton(
+            icon: Icons.psychology,
+            label: 'Análises de IA',
+            color: Colors.purple,
+            onTap: () {
+              Navigator.of(context).pushNamed('/analyses');
             },
           ),
         ],

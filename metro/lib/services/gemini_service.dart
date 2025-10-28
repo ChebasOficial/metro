@@ -198,6 +198,17 @@ class GeminiService {
             .toList());
   }
 
+  // Obter todas as análises
+  Stream<List<AnalysisModel>> getAllAnalyses() {
+    return _firestore
+        .collection('analyses')
+        .orderBy('analysisDate', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => AnalysisModel.fromFirestore(doc))
+            .toList());
+  }
+
   // Comparar duas imagens (progresso temporal)
   Future<Map<String, dynamic>?> compareImages(
     String imageUrl1,
