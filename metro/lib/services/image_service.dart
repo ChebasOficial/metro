@@ -1,13 +1,12 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/image_record_model.dart';
 
 class ImageService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
   final ImagePicker _picker = ImagePicker();
 
   // Capturar imagem da câmera
@@ -42,99 +41,125 @@ class ImageService {
     }
   }
 
-  // Upload de imagem para Firebase Storage
-  Future<Map<String, String>?> uploadImage(
+  // Converter imagem para Base64 e salvar no Firestore
+  Future<String?> saveImageToFirestore(
     File imageFile,
     String projectId,
     String capturePointId,
   ) async {
     try {
-      String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      String fileName = 'projects/$projectId/$capturePointId/$timestamp.jpg';
-      String thumbnailName = 'projects/$projectId/$capturePointId/${timestamp}_thumb.jpg';
-
-      // Upload imagem original
-      Reference ref = _storage.ref().child(fileName);
-      UploadTask uploadTask = ref.putFile(imageFile);
-      TaskSnapshot snapshot = await uploadTask;
-      String imageUrl = await snapshot.ref.getDownloadURL();
-
-      // TODO: Gerar e fazer upload da thumbnail
-      // Por enquanto, usar a mesma URL
-      String thumbnailUrl = imageUrl;
-
-      return {
-        'imageUrl': imageUrl,
-        'thumbnailUrl': thumbnailUrl,
-      };
+      // Ler bytes da imagem
+      final bytes = await imageFile.readAsBytes();
+      
+      // Converter para Base64
+      final base64Image = base64Encode(bytes);
+      
+      // Criar timestamp único
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final imageId = 'img_${projectId}_${capturePointId}_$timestamp';
+      
+      // Salvar no Firestore
+      await _firestore.collection('images').doc(imageId).set({
+        'imageData': base64Image,
+        'projectId': projectId,
+        'capturePointId': capturePointId,
+        'timestamp': Timestamp.now(),
+        'size': bytes.length,
+      });
+      
+      debugPrint('Imagem salva no Firestore: $imageId');
+      return imageId;
     } catch (e) {
-      debugPrint('Erro ao fazer upload da imagem: $e');
+      debugPrint('Erro ao salvar imagem: $e');
       return null;
     }
   }
 
   // Criar registro de imagem
-  Future<String> createImageRecord(ImageRecordModel imageRecord) async {
+  Future<String?> createImageRecord(
+    String projectId,
+    String capturePointId,
+    String imageId,
+    String userId, {
+    String? description,
+    Map<String, dynamic>? metadata,
+  }) async {
     try {
+      ImageRecordModel record = ImageRecordModel(
+        id: '',
+        projectId: projectId,
+        capturePointId: capturePointId,
+        imageId: imageId, // Agora é o ID do documento no Firestore
+        capturedBy: userId,
+        captureDate: DateTime.now(),
+        description: description,
+        analysisStatus: 'pending',
+        metadata: metadata,
+        createdAt: DateTime.now(),
+      );
+
       DocumentReference docRef = await _firestore
           .collection('image_records')
-          .add(imageRecord.toFirestore());
+          .add(record.toFirestore());
+
+      debugPrint('Registro de imagem criado: ${docRef.id}');
       return docRef.id;
     } catch (e) {
       debugPrint('Erro ao criar registro de imagem: $e');
-      rethrow;
+      return null;
     }
   }
 
-  // Atualizar registro de imagem
-  Future<void> updateImageRecord(
-    String imageRecordId,
-    Map<String, dynamic> updates,
-  ) async {
+  // Obter imagem do Firestore como Base64
+  Future<String?> getImageBase64(String imageId) async {
     try {
-      updates['updatedAt'] = Timestamp.now();
-      await _firestore
-          .collection('image_records')
-          .doc(imageRecordId)
-          .update(updates);
-    } catch (e) {
-      debugPrint('Erro ao atualizar registro de imagem: $e');
-      rethrow;
-    }
-  }
-
-  // Deletar registro de imagem
-  Future<void> deleteImageRecord(String imageRecordId) async {
-    try {
-      // Buscar o registro para obter as URLs das imagens
       DocumentSnapshot doc = await _firestore
-          .collection('image_records')
-          .doc(imageRecordId)
+          .collection('images')
+          .doc(imageId)
           .get();
       
       if (doc.exists) {
-        ImageRecordModel record = ImageRecordModel.fromFirestore(doc);
-        
-        // Deletar imagens do Storage
-        try {
-          await _storage.refFromURL(record.imageUrl).delete();
-          if (record.thumbnailUrl != record.imageUrl) {
-            await _storage.refFromURL(record.thumbnailUrl).delete();
-          }
-        } catch (e) {
-          debugPrint('Erro ao deletar imagens do storage: $e');
-        }
-        
-        // Deletar documento
-        await _firestore.collection('image_records').doc(imageRecordId).delete();
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return data['imageData'] as String?;
       }
+      return null;
     } catch (e) {
-      debugPrint('Erro ao deletar registro de imagem: $e');
-      rethrow;
+      debugPrint('Erro ao buscar imagem: $e');
+      return null;
     }
   }
 
-  // Obter imagens de um projeto
+  // Obter registro de imagem
+  Future<ImageRecordModel?> getImageRecord(String recordId) async {
+    try {
+      DocumentSnapshot doc = await _firestore
+          .collection('image_records')
+          .doc(recordId)
+          .get();
+
+      if (doc.exists) {
+        return ImageRecordModel.fromFirestore(doc);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Erro ao buscar registro de imagem: $e');
+      return null;
+    }
+  }
+
+  // Obter registros de imagem de um ponto de captura
+  Stream<List<ImageRecordModel>> getCapturePointImages(String capturePointId) {
+    return _firestore
+        .collection('image_records')
+        .where('capturePointId', isEqualTo: capturePointId)
+        .orderBy('captureDate', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ImageRecordModel.fromFirestore(doc))
+            .toList());
+  }
+
+  // Obter todas as imagens de um projeto
   Stream<List<ImageRecordModel>> getProjectImages(String projectId) {
     return _firestore
         .collection('image_records')
@@ -146,59 +171,51 @@ class ImageService {
             .toList());
   }
 
-  // Obter imagens de um ponto de captura
-  Stream<List<ImageRecordModel>> getCapturePointImages(
-    String projectId,
-    String capturePointId,
-  ) {
-    return _firestore
-        .collection('image_records')
-        .where('projectId', isEqualTo: projectId)
-        .where('capturePointId', isEqualTo: capturePointId)
-        .orderBy('captureDate', descending: true)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ImageRecordModel.fromFirestore(doc))
-            .toList());
-  }
-
-  // Obter imagens por período
-  Stream<List<ImageRecordModel>> getImagesByDateRange(
-    String projectId,
-    DateTime startDate,
-    DateTime endDate,
-  ) {
-    return _firestore
-        .collection('image_records')
-        .where('projectId', isEqualTo: projectId)
-        .where('captureDate', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-        .where('captureDate', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
-        .orderBy('captureDate', descending: true)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ImageRecordModel.fromFirestore(doc))
-            .toList());
-  }
-
-  // Obter imagem por ID
-  Future<ImageRecordModel?> getImageRecord(String imageRecordId) async {
+  // Atualizar status de análise
+  Future<void> updateAnalysisStatus(
+    String recordId,
+    String status, {
+    String? analysisId,
+  }) async {
     try {
-      DocumentSnapshot doc = await _firestore
-          .collection('image_records')
-          .doc(imageRecordId)
-          .get();
-      
-      if (doc.exists) {
-        return ImageRecordModel.fromFirestore(doc);
+      Map<String, dynamic> updateData = {
+        'analysisStatus': status,
+        'updatedAt': Timestamp.now(),
+      };
+
+      if (analysisId != null) {
+        updateData['analysisId'] = analysisId;
       }
-      return null;
+
+      await _firestore
+          .collection('image_records')
+          .doc(recordId)
+          .update(updateData);
+
+      debugPrint('Status de análise atualizado: $recordId -> $status');
     } catch (e) {
-      debugPrint('Erro ao buscar registro de imagem: $e');
-      return null;
+      debugPrint('Erro ao atualizar status de análise: $e');
     }
   }
 
-  // Obter estatísticas de imagens do projeto
+  // Deletar imagem e seu registro
+  Future<bool> deleteImage(String recordId, String imageId) async {
+    try {
+      // Deletar imagem do Firestore
+      await _firestore.collection('images').doc(imageId).delete();
+      
+      // Deletar registro
+      await _firestore.collection('image_records').doc(recordId).delete();
+      
+      debugPrint('Imagem deletada: $imageId');
+      return true;
+    } catch (e) {
+      debugPrint('Erro ao deletar imagem: $e');
+      return false;
+    }
+  }
+
+  // Obter estatísticas de imagens de um projeto
   Future<Map<String, int>> getProjectImageStats(String projectId) async {
     try {
       QuerySnapshot snapshot = await _firestore
@@ -213,8 +230,8 @@ class ImageService {
       int failed = 0;
 
       for (var doc in snapshot.docs) {
-        ImageRecordModel record = ImageRecordModel.fromFirestore(doc);
-        switch (record.analysisStatus) {
+        String status = doc.get('analysisStatus') ?? 'pending';
+        switch (status) {
           case 'pending':
             pending++;
             break;
@@ -238,8 +255,14 @@ class ImageService {
         'failed': failed,
       };
     } catch (e) {
-      debugPrint('Erro ao buscar estatísticas: $e');
-      return {};
+      debugPrint('Erro ao obter estatísticas: $e');
+      return {
+        'total': 0,
+        'pending': 0,
+        'processing': 0,
+        'completed': 0,
+        'failed': 0,
+      };
     }
   }
 }
