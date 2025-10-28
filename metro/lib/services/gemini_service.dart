@@ -10,7 +10,7 @@ class GeminiService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late final GenerativeModel _model;
   static const String _apiKey =
-      'YOUR_GEMINI_API_KEY'; // TODO: Mover para variável de ambiente
+      'AIzaSyDo59BRfS_oTPTNjI9CjmxMpXnbdqNCaWo'; // TODO: Mover para variável de ambiente
 
   GeminiService() {
     _model = GenerativeModel(
