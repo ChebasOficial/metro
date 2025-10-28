@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io' if (dart.library.html) 'dart:html' as html;
+import 'dart:io' if (dart.library.html) 'dart:html';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -42,9 +42,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
       if (image != null) {
         setState(() {
           _selectedImageFile = image;
-          if (kIsWeb) {
-            _selectedImage = image;
-          } else {
+          if (!kIsWeb) {
             _selectedImage = File(image.path);
           }
         });
@@ -62,7 +60,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
   }
 
   Future<void> _uploadImage() async {
-    if (_selectedImage == null) {
+    if (_selectedImageFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selecione uma imagem')),
       );
@@ -83,16 +81,8 @@ class _CaptureScreenState extends State<CaptureScreen> {
       if (user == null) throw Exception('Usuário não autenticado');
 
       // Converter imagem para Base64
-      String base64Image;
-      if (kIsWeb) {
-        // Web: usar XFile
-        final bytes = await _selectedImageFile!.readAsBytes();
-        base64Image = base64Encode(bytes);
-      } else {
-        // Mobile: usar File
-        final bytes = await (_selectedImage as File).readAsBytes();
-        base64Image = base64Encode(bytes);
-      }
+      final bytes = await _selectedImageFile!.readAsBytes();
+      final base64Image = base64Encode(bytes);
 
       // Salvar imagem usando o método uploadImage
       await _imageService.uploadImage(
@@ -142,7 +132,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Preview da imagem
-            if (_selectedImage != null)
+            if (_selectedImageFile != null)
               kIsWeb
                   ? FutureBuilder<Uint8List>(
                       future: _selectedImageFile!.readAsBytes(),
@@ -174,7 +164,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(AppConfig.radiusNormal),
                         image: DecorationImage(
-                          image: FileImage(_selectedImage as File),
+                          image: FileImage(_selectedImage),
                           fit: BoxFit.cover,
                         ),
                       ),
