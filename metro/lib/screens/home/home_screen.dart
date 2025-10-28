@@ -255,24 +255,22 @@ class _DashboardPage extends StatelessWidget {
           ),
           const SizedBox(height: AppConfig.paddingNormal),
           
-          if (currentUser?.canCaptureImages ?? false) ...[
-            _ActionButton(
-              icon: Icons.camera_alt,
-              label: 'Capturar Imagem',
-              color: AppConfig.primaryColor,
-              onTap: () {
-                Navigator.of(context).pushNamed('/capture');
-              },
-            ),
-            const SizedBox(height: AppConfig.paddingSmall),
-          ],
+          _ActionButton(
+            icon: Icons.camera_alt,
+            label: 'Capturar Imagem',
+            color: AppConfig.primaryColor,
+            onTap: () {
+              Navigator.of(context).pushNamed('/capture');
+            },
+          ),
+          const SizedBox(height: AppConfig.paddingSmall),
           
           _ActionButton(
             icon: Icons.construction,
             label: 'Ver Todos os Projetos',
             color: AppConfig.secondaryColor,
             onTap: () {
-              // Navegar para lista de projetos
+              Navigator.of(context).pushNamed('/projects');
             },
           ),
           const SizedBox(height: AppConfig.paddingSmall),

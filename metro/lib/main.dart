@@ -12,6 +12,7 @@ import 'screens/analyses/analyses_screen.dart';
 import 'screens/profile/edit_profile_screen.dart';
 import 'screens/profile/change_password_screen.dart';
 import 'screens/settings/settings_screen.dart';
+import 'screens/projects/projects_list_screen.dart';
 import 'config/app_config.dart';
 
 void main() {
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
         '/edit-profile': (context) => const EditProfileScreen(),
         '/change-password': (context) => const ChangePasswordScreen(),
         '/settings': (context) => const SettingsScreen(),
+        '/projects': (context) => const ProjectsListScreen(),
       },
     );
   }
