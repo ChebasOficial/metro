@@ -9,8 +9,7 @@ import '../models/image_record_model.dart';
 class GeminiService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late final GenerativeModel _model;
-  static const String _apiKey =
-      'AIzaSyDo59BRfS_oTPTNjI9CjmxMpXnbdqNCaWo'; // TODO: Mover para variável de ambiente
+  static const String _apiKey = 'YOUR_GEMINI_API_KEY'; // TODO: Mover para variável de ambiente
 
   GeminiService() {
     _model = GenerativeModel(
@@ -32,7 +31,7 @@ class GeminiService {
       final httpClient = HttpClient();
       final request = await httpClient.getUrl(Uri.parse(imageUrl));
       final response = await request.close();
-
+      
       // Converter para Uint8List
       final List<int> bytesList = await response.fold<List<int>>(
         [],
@@ -52,7 +51,7 @@ class GeminiService {
       ];
 
       final geminiResponse = await _model.generateContent(content);
-
+      
       if (geminiResponse.text == null) {
         throw Exception('Resposta vazia da Gemini AI');
       }
@@ -77,13 +76,13 @@ class GeminiService {
       return analysis;
     } catch (e) {
       debugPrint('Erro ao analisar imagem: $e');
-
+      
       // Atualizar status como falho
       await _firestore.collection('image_records').doc(imageRecordId).update({
         'analysisStatus': 'failed',
         'updatedAt': Timestamp.now(),
       });
-
+      
       return null;
     }
   }
@@ -91,41 +90,38 @@ class GeminiService {
   // Construir prompt para análise
   String _buildAnalysisPrompt(String? phase, Map<String, dynamic>? bimData) {
     StringBuffer prompt = StringBuffer();
-
-    prompt.writeln(
-        'Você é um especialista em análise de obras de construção civil, especialmente obras de metrô.');
-    prompt.writeln(
-        'Analise esta imagem de canteiro de obras e forneça as seguintes informações em formato JSON:');
+    
+    prompt.writeln('Você é um especialista em análise de obras de construção civil, especialmente obras de metrô.');
+    prompt.writeln('Analise esta imagem de canteiro de obras e forneça as seguintes informações em formato JSON:');
     prompt.writeln();
     prompt.writeln('1. Elementos detectados (tipo, descrição, confiança)');
     prompt.writeln('2. Problemas ou irregularidades identificadas');
     prompt.writeln('3. Estimativa de progresso da obra (0-100%)');
     prompt.writeln('4. Estado geral da construção');
-
+    
     if (phase != null) {
       prompt.writeln();
       prompt.writeln('Fase da obra esperada: $phase');
     }
-
+    
     if (bimData != null) {
       prompt.writeln();
       prompt.writeln('Dados do projeto BIM para comparação:');
       prompt.writeln(bimData.toString());
     }
-
+    
     prompt.writeln();
     prompt.writeln('Formato de resposta esperado (JSON):');
     prompt.writeln('{');
     prompt.writeln('  "detectedElements": [');
-    prompt.writeln(
-        '    {"type": "pilar", "description": "...", "confidence": 0.95}');
+    prompt.writeln('    {"type": "pilar", "description": "...", "confidence": 0.95}');
     prompt.writeln('  ],');
     prompt.writeln('  "identifiedIssues": ["..."],');
     prompt.writeln('  "progressEstimate": 75.5,');
     prompt.writeln('  "generalState": "...",');
     prompt.writeln('  "comparisonWithBIM": "..."');
     prompt.writeln('}');
-
+    
     return prompt.toString();
   }
 
@@ -137,7 +133,7 @@ class GeminiService {
   ) {
     // TODO: Implementar parsing robusto da resposta JSON
     // Por enquanto, criar análise básica
-
+    
     Map<String, dynamic> geminiData = {
       'rawResponse': responseText,
       'timestamp': DateTime.now().toIso8601String(),
@@ -162,8 +158,9 @@ class GeminiService {
   // Salvar análise no Firestore
   Future<String> _saveAnalysis(AnalysisModel analysis) async {
     try {
-      DocumentReference docRef =
-          await _firestore.collection('analyses').add(analysis.toFirestore());
+      DocumentReference docRef = await _firestore
+          .collection('analyses')
+          .add(analysis.toFirestore());
       return docRef.id;
     } catch (e) {
       debugPrint('Erro ao salvar análise: $e');
@@ -174,9 +171,11 @@ class GeminiService {
   // Obter análise por ID
   Future<AnalysisModel?> getAnalysis(String analysisId) async {
     try {
-      DocumentSnapshot doc =
-          await _firestore.collection('analyses').doc(analysisId).get();
-
+      DocumentSnapshot doc = await _firestore
+          .collection('analyses')
+          .doc(analysisId)
+          .get();
+      
       if (doc.exists) {
         return AnalysisModel.fromFirestore(doc);
       }
@@ -206,7 +205,7 @@ class GeminiService {
   ) async {
     try {
       final httpClient = HttpClient();
-
+      
       // Baixar primeira imagem
       final request1 = await httpClient.getUrl(Uri.parse(imageUrl1));
       final response1 = await request1.close();
@@ -215,7 +214,7 @@ class GeminiService {
         (previous, element) => previous..addAll(element),
       );
       final Uint8List imageBytes1 = Uint8List.fromList(bytesList1);
-
+      
       // Baixar segunda imagem
       final request2 = await httpClient.getUrl(Uri.parse(imageUrl2));
       final response2 = await request2.close();
@@ -246,14 +245,14 @@ Forneça a resposta em formato JSON estruturado.
       ];
 
       final response = await _model.generateContent(content);
-
+      
       if (response.text != null) {
         return {
           'comparison': response.text,
           'timestamp': DateTime.now().toIso8601String(),
         };
       }
-
+      
       return null;
     } catch (e) {
       debugPrint('Erro ao comparar imagens: $e');
@@ -261,3 +260,4 @@ Forneça a resposta em formato JSON estruturado.
     }
   }
 }
+
