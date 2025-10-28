@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -28,7 +29,8 @@ class GeminiService {
     try {
       // Baixar imagem
       final response = await HttpClient().getUrl(Uri.parse(imageUrl));
-      final bytes = await response.close().then((res) => res.toBytes());
+      final List<int> bytesList = await response.close().then((res) => res.toBytes());
+      final Uint8List bytes = Uint8List.fromList(bytesList);
 
       // Preparar prompt
       String prompt = _buildAnalysisPrompt(constructionPhase, bimData);
@@ -197,10 +199,12 @@ class GeminiService {
     try {
       // Baixar ambas as imagens
       final response1 = await HttpClient().getUrl(Uri.parse(imageUrl1));
-      final bytes1 = await response1.close().then((res) => res.toBytes());
+      final List<int> bytesList1 = await response1.close().then((res) => res.toBytes());
+      final Uint8List bytes1 = Uint8List.fromList(bytesList1);
       
       final response2 = await HttpClient().getUrl(Uri.parse(imageUrl2));
-      final bytes2 = await response2.close().then((res) => res.toBytes());
+      final List<int> bytesList2 = await response2.close().then((res) => res.toBytes());
+      final Uint8List bytes2 = Uint8List.fromList(bytesList2);
 
       // Preparar prompt de comparação
       String prompt = '''
