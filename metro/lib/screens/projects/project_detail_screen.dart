@@ -77,7 +77,7 @@ class ProjectDetailScreen extends StatelessWidget {
                     label: 'Capturar',
                     color: AppConfig.primaryColor,
                     onTap: () {
-                      // TODO: Navegar para captura
+                      Navigator.of(context).pushNamed('/capture');
                     },
                   ),
                 ),
@@ -88,7 +88,7 @@ class ProjectDetailScreen extends StatelessWidget {
                     label: 'Galeria',
                     color: AppConfig.secondaryColor,
                     onTap: () {
-                      // TODO: Navegar para galeria
+                      Navigator.of(context).pushNamed('/gallery');
                     },
                   ),
                 ),
@@ -103,7 +103,7 @@ class ProjectDetailScreen extends StatelessWidget {
                     label: 'Alertas',
                     color: AppConfig.warningColor,
                     onTap: () {
-                      // TODO: Navegar para alertas
+                      Navigator.of(context).pushNamed('/alerts');
                     },
                   ),
                 ),
@@ -114,7 +114,7 @@ class ProjectDetailScreen extends StatelessWidget {
                     label: 'Análises',
                     color: AppConfig.accentColor,
                     onTap: () {
-                      // TODO: Navegar para análises
+                      Navigator.of(context).pushNamed('/analyses');
                     },
                   ),
                 ),

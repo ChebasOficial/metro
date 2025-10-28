@@ -21,6 +21,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
   
   File? _selectedImage;
   ProjectModel? _selectedProject;
+  String? _selectedProjectId;
   String? _selectedCapturePoint;
   final _descriptionController = TextEditingController();
   bool _isUploading = false;
@@ -193,26 +194,67 @@ class _CaptureScreenState extends State<CaptureScreen> {
             StreamBuilder<List<ProjectModel>>(
               stream: _projectService.getAllProjects(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const CircularProgressIndicator();
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(AppConfig.paddingNormal),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
                 }
 
-                final projects = snapshot.data!;
+                if (snapshot.hasError) {
+                  return Text('Erro ao carregar projetos: ${snapshot.error}');
+                }
 
-                return DropdownButtonFormField<ProjectModel>(
-                  value: _selectedProject,
+                final projects = snapshot.data ?? [];
+
+                if (projects.isEmpty) {
+                  return Card(
+                    color: Colors.orange[50],
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppConfig.paddingNormal),
+                      child: Column(
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.orange[700]),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Nenhum projeto encontrado',
+                            style: TextStyle(color: Colors.orange[700]),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Crie um projeto primeiro',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.orange[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return DropdownButtonFormField<String>(
+                  value: _selectedProjectId,
                   decoration: const InputDecoration(
                     labelText: 'Projeto',
                     border: OutlineInputBorder(),
                   ),
                   items: projects.map((project) {
-                    return DropdownMenuItem(
-                      value: project,
+                    return DropdownMenuItem<String>(
+                      value: project.id,
                       child: Text(project.name),
                     );
                   }).toList(),
                   onChanged: (value) {
-                    setState(() => _selectedProject = value);
+                    setState(() {
+                      _selectedProjectId = value;
+                      _selectedProject = projects.firstWhere(
+                        (p) => p.id == value,
+                      );
+                    });
                   },
                 );
               },
