@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'dart:html' as html;
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../config/app_config.dart';
 import '../../services/image_service.dart';
 import '../../services/project_service.dart';
@@ -19,7 +22,8 @@ class _CaptureScreenState extends State<CaptureScreen> {
   final _projectService = ProjectService();
   final _picker = ImagePicker();
   
-  File? _selectedImage;
+  dynamic _selectedImage; // File no mobile, XFile na web
+  XFile? _selectedImageFile;
   ProjectModel? _selectedProject;
   String? _selectedProjectId;
   String? _selectedCapturePoint;
@@ -37,7 +41,12 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
       if (image != null) {
         setState(() {
-          _selectedImage = File(image.path);
+          _selectedImageFile = image;
+          if (kIsWeb) {
+            _selectedImage = image;
+          } else {
+            _selectedImage = File(image.path);
+          }
         });
       }
     } catch (e) {
@@ -73,20 +82,25 @@ class _CaptureScreenState extends State<CaptureScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception('Usuário não autenticado');
 
-      // Converter imagem para Base64 e salvar
-      final imageId = await _imageService.uploadImageBase64(
-        _selectedImage!,
-        _selectedProject!.id,
-        _selectedCapturePoint ?? 'default',
-      );
+      // Converter imagem para Base64
+      String base64Image;
+      if (kIsWeb) {
+        // Web: usar XFile
+        final bytes = await _selectedImageFile!.readAsBytes();
+        base64Image = base64Encode(bytes);
+      } else {
+        // Mobile: usar File
+        final bytes = await (_selectedImage as File).readAsBytes();
+        base64Image = base64Encode(bytes);
+      }
 
-      // Criar registro da imagem
-      await _imageService.createImageRecord(
-        _selectedProject!.id,
-        _selectedCapturePoint ?? 'default',
-        imageId,
-        user.uid,
-        description: _descriptionController.text.trim(),
+      // Salvar imagem usando o método uploadImage
+      await _imageService.uploadImage(
+        projectId: _selectedProject!.id,
+        capturePointId: _selectedCapturePoint ?? 'default',
+        imageBase64: base64Image,
+        notes: _descriptionController.text.trim(),
+        capturedBy: user.uid,
       );
 
       if (mounted) {
@@ -129,16 +143,42 @@ class _CaptureScreenState extends State<CaptureScreen> {
           children: [
             // Preview da imagem
             if (_selectedImage != null)
-              Container(
-                height: 300,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppConfig.radiusNormal),
-                  image: DecorationImage(
-                    image: FileImage(_selectedImage!),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              )
+              kIsWeb
+                  ? FutureBuilder<Uint8List>(
+                      future: _selectedImageFile!.readAsBytes(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return Container(
+                            height: 300,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(AppConfig.radiusNormal),
+                              image: DecorationImage(
+                                image: MemoryImage(snapshot.data!),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          );
+                        }
+                        return Container(
+                          height: 300,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(AppConfig.radiusNormal),
+                          ),
+                          child: const Center(child: CircularProgressIndicator()),
+                        );
+                      },
+                    )
+                  : Container(
+                      height: 300,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(AppConfig.radiusNormal),
+                        image: DecorationImage(
+                          image: FileImage(_selectedImage as File),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    )
             else
               Container(
                 height: 300,
