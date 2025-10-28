@@ -50,7 +50,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
             child: StreamBuilder<List<AlertModel>>(
               stream: _selectedFilter == 'all'
                   ? _alertService.getAllAlerts()
-                  : _alertService.getAlertsBySeverity(_selectedFilter),
+                  : _alertService.getAlerts(severity: _selectedFilter),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());

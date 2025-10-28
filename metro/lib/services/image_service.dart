@@ -173,6 +173,107 @@ class ImageService {
             .toList());
   }
 
+  // Obter todas as imagens
+  Stream<List<ImageRecordModel>> getAllImages() {
+    return _firestore
+        .collection('image_records')
+        .orderBy('captureDate', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ImageRecordModel.fromFirestore(doc))
+            .toList());
+  }
+
+  // Obter imagens por projeto (alias para compatibilidade)
+  Stream<List<ImageRecordModel>> getImagesByProject(String projectId) {
+    return getProjectImages(projectId);
+  }
+
+  // Upload de imagem em Base64 (método simplificado)
+  Future<String> uploadImageBase64(
+    File imageFile,
+    String projectId,
+    String capturePointId,
+  ) async {
+    try {
+      // Ler bytes da imagem
+      final bytes = await imageFile.readAsBytes();
+      
+      // Converter para Base64
+      final base64Image = base64Encode(bytes);
+      
+      // Criar timestamp único
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final imageId = 'img_${projectId}_${capturePointId}_$timestamp';
+      
+      // Salvar no Firestore
+      await _firestore.collection('images').doc(imageId).set({
+        'imageData': base64Image,
+        'projectId': projectId,
+        'capturePointId': capturePointId,
+        'timestamp': Timestamp.now(),
+        'size': bytes.length,
+      });
+      
+      debugPrint('Imagem salva no Firestore: $imageId');
+      return imageId;
+    } catch (e) {
+      debugPrint('Erro ao salvar imagem: $e');
+      rethrow;
+    }
+  }
+
+  // Upload de imagem com registro completo
+  Future<String> uploadImage({
+    required String projectId,
+    required String capturePointId,
+    required String imageBase64,
+    String? notes,
+    required String capturedBy,
+  }) async {
+    try {
+      // Criar timestamp único
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final imageId = 'img_${projectId}_${capturePointId}_$timestamp';
+      
+      // Salvar imagem no Firestore
+      await _firestore.collection('images').doc(imageId).set({
+        'imageData': imageBase64,
+        'projectId': projectId,
+        'capturePointId': capturePointId,
+        'timestamp': Timestamp.now(),
+        'size': imageBase64.length,
+      });
+      
+      // Criar registro de imagem
+      ImageRecordModel record = ImageRecordModel(
+        id: '',
+        projectId: projectId,
+        capturePointId: capturePointId,
+        imageUrl: imageId,
+        thumbnailUrl: imageId,
+        imageBase64: imageBase64,
+        capturedBy: capturedBy,
+        capturedByName: 'Usuário',
+        captureDate: DateTime.now(),
+        analysisStatus: 'pending',
+        metadata: notes != null ? {'notes': notes} : null,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      DocumentReference docRef = await _firestore
+          .collection('image_records')
+          .add(record.toFirestore());
+
+      debugPrint('Imagem e registro criados: ${docRef.id}');
+      return docRef.id;
+    } catch (e) {
+      debugPrint('Erro ao fazer upload da imagem: $e');
+      rethrow;
+    }
+  }
+
   // Atualizar status de análise
   Future<void> updateAnalysisStatus(
     String recordId,

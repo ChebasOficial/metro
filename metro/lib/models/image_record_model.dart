@@ -6,6 +6,7 @@ class ImageRecordModel {
   final String capturePointId;
   final String imageUrl;
   final String thumbnailUrl;
+  final String? imageBase64; // Imagem em Base64
   final DateTime captureDate;
   final String capturedBy; // User ID
   final String capturedByName;
@@ -24,6 +25,7 @@ class ImageRecordModel {
     required this.capturePointId,
     required this.imageUrl,
     required this.thumbnailUrl,
+    this.imageBase64,
     required this.captureDate,
     required this.capturedBy,
     required this.capturedByName,
@@ -45,6 +47,7 @@ class ImageRecordModel {
       capturePointId: data['capturePointId'] ?? '',
       imageUrl: data['imageUrl'] ?? '',
       thumbnailUrl: data['thumbnailUrl'] ?? '',
+      imageBase64: data['imageBase64'],
       captureDate: (data['captureDate'] as Timestamp).toDate(),
       capturedBy: data['capturedBy'] ?? '',
       capturedByName: data['capturedByName'] ?? '',
@@ -65,6 +68,7 @@ class ImageRecordModel {
       'capturePointId': capturePointId,
       'imageUrl': imageUrl,
       'thumbnailUrl': thumbnailUrl,
+      if (imageBase64 != null) 'imageBase64': imageBase64,
       'captureDate': Timestamp.fromDate(captureDate),
       'capturedBy': capturedBy,
       'capturedByName': capturedByName,
@@ -85,6 +89,7 @@ class ImageRecordModel {
     String? capturePointId,
     String? imageUrl,
     String? thumbnailUrl,
+    String? imageBase64,
     DateTime? captureDate,
     String? capturedBy,
     String? capturedByName,
@@ -103,6 +108,7 @@ class ImageRecordModel {
       capturePointId: capturePointId ?? this.capturePointId,
       imageUrl: imageUrl ?? this.imageUrl,
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      imageBase64: imageBase64 ?? this.imageBase64,
       captureDate: captureDate ?? this.captureDate,
       capturedBy: capturedBy ?? this.capturedBy,
       capturedByName: capturedByName ?? this.capturedByName,
