@@ -77,7 +77,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
             itemCount: images.length,
             itemBuilder: (context, index) {
-              return _ImageCard(image: images[index]);
+              return _ImageCard(
+                image: images[index],
+                imageService: _imageService,
+              );
             },
           );
         },
@@ -88,8 +91,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
 class _ImageCard extends StatelessWidget {
   final ImageRecordModel image;
+  final ImageService imageService;
 
-  const _ImageCard({required this.image});
+  const _ImageCard({
+    required this.image,
+    required this.imageService,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +191,7 @@ class _ImageCard extends StatelessWidget {
       // Se for um ID (formato antigo), buscar do Firestore
       else if (image.imageUrl.startsWith('img_')) {
         return FutureBuilder<String?>(
-          future: _imageService.getImageBase64(image.imageUrl),
+          future: imageService.getImageBase64(image.imageUrl),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
