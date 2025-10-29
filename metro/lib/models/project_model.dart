@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProjectModel {
   final String id;
-  final String userId; // ID do usuário que criou o projeto
   final String name;
   final String description;
   final String location;
@@ -13,10 +12,10 @@ class ProjectModel {
   final Map<String, dynamic>? bimData;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String userId; // ID do usuário que criou o projeto
 
   ProjectModel({
     required this.id,
-    required this.userId,
     required this.name,
     required this.description,
     required this.location,
@@ -27,6 +26,7 @@ class ProjectModel {
     this.bimData,
     required this.createdAt,
     required this.updatedAt,
+    required this.userId,
   });
 
   // Converter de Firestore para Model
@@ -34,7 +34,6 @@ class ProjectModel {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return ProjectModel(
       id: doc.id,
-      userId: data['userId'] ?? '',
       name: data['name'] ?? '',
       description: data['description'] ?? '',
       location: data['location'] ?? '',
@@ -47,13 +46,13 @@ class ProjectModel {
       bimData: data['bimData'],
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       updatedAt: (data['updatedAt'] as Timestamp).toDate(),
+      userId: data['userId'] ?? '',
     );
   }
 
   // Converter de Model para Firestore
   Map<String, dynamic> toFirestore() {
     return {
-      'userId': userId,
       'name': name,
       'description': description,
       'location': location,
@@ -66,13 +65,13 @@ class ProjectModel {
       'bimData': bimData,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
+      'userId': userId,
     };
   }
 
   // Criar cópia com modificações
   ProjectModel copyWith({
     String? id,
-    String? userId,
     String? name,
     String? description,
     String? location,
@@ -83,10 +82,10 @@ class ProjectModel {
     Map<String, dynamic>? bimData,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? userId,
   }) {
     return ProjectModel(
       id: id ?? this.id,
-      userId: userId ?? this.userId,
       name: name ?? this.name,
       description: description ?? this.description,
       location: location ?? this.location,
@@ -97,6 +96,7 @@ class ProjectModel {
       bimData: bimData ?? this.bimData,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      userId: userId ?? this.userId,
     );
   }
 }

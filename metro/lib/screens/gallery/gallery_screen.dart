@@ -31,29 +31,36 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
           if (snapshot.hasError) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error, size: 64, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text('Erro ao carregar imagens: ${snapshot.error}'),
-                ],
-              ),
+              child: Text('Erro: ${snapshot.error}'),
             );
           }
 
           final images = snapshot.data ?? [];
 
           if (images.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.photo_library, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
+                  Icon(
+                    Icons.photo_library_outlined,
+                    size: 80,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: AppConfig.paddingNormal),
                   Text(
                     'Nenhuma imagem encontrada',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: AppConfig.paddingSmall),
+                  Text(
+                    'Capture imagens para vê-las aqui',
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                    ),
                   ),
                 ],
               ),
@@ -73,10 +80,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
               return _ImageCard(
                 image: images[index],
                 imageService: _imageService,
-                onDeleted: () {
-                  // Callback para atualizar a lista após exclusão
-                  setState(() {});
-                },
               );
             },
           );
@@ -89,12 +92,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
 class _ImageCard extends StatelessWidget {
   final ImageRecordModel image;
   final ImageService imageService;
-  final VoidCallback onDeleted;
 
   const _ImageCard({
     required this.image,
     required this.imageService,
-    required this.onDeleted,
   });
 
   @override
@@ -103,11 +104,7 @@ class _ImageCard extends StatelessWidget {
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => _ImageDetailScreen(
-              image: image,
-              imageService: imageService,
-              onDeleted: onDeleted,
-            ),
+            builder: (_) => _ImageDetailScreen(image: image),
           ),
         );
       },
@@ -275,81 +272,8 @@ class _ImageCard extends StatelessWidget {
 
 class _ImageDetailScreen extends StatelessWidget {
   final ImageRecordModel image;
-  final ImageService imageService;
-  final VoidCallback onDeleted;
 
-  const _ImageDetailScreen({
-    required this.image,
-    required this.imageService,
-    required this.onDeleted,
-  });
-
-  Future<void> _deleteImage(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Excluir Imagem'),
-        content: const Text(
-          'Tem certeza que deseja excluir esta imagem? Esta ação não pode ser desfeita.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppConfig.errorColor,
-            ),
-            child: const Text('Excluir'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && context.mounted) {
-      try {
-        // Extrair imageId se for formato antigo
-        String? imageId;
-        if (image.imageUrl.startsWith('img_')) {
-          imageId = image.imageUrl;
-        }
-
-        // Deletar imagem
-        final success = await imageService.deleteImage(image.id, imageId ?? image.id);
-
-        if (context.mounted) {
-          if (success) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Imagem excluída com sucesso!'),
-                backgroundColor: AppConfig.successColor,
-              ),
-            );
-            onDeleted();
-            Navigator.pop(context);
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Erro ao excluir imagem'),
-                backgroundColor: AppConfig.errorColor,
-              ),
-            );
-          }
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erro ao excluir imagem: $e'),
-              backgroundColor: AppConfig.errorColor,
-            ),
-          );
-        }
-      }
-    }
-  }
+  const _ImageDetailScreen({required this.image});
 
   @override
   Widget build(BuildContext context) {
@@ -358,13 +282,6 @@ class _ImageDetailScreen extends StatelessWidget {
         title: const Text('Detalhes da Imagem'),
         backgroundColor: AppConfig.primaryColor,
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: () => _deleteImage(context),
-            tooltip: 'Excluir imagem',
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -423,32 +340,6 @@ class _ImageDetailScreen extends StatelessWidget {
         return Image.memory(
           base64Decode(base64String),
           fit: BoxFit.cover,
-        );
-      } else if (image.imageBase64 != null && image.imageBase64!.isNotEmpty) {
-        return Image.memory(
-          base64Decode(image.imageBase64!),
-          fit: BoxFit.cover,
-        );
-      } else if (image.imageUrl.startsWith('img_')) {
-        return FutureBuilder<String?>(
-          future: imageService.getImageBase64(image.imageUrl),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasData && snapshot.data != null) {
-              return Image.memory(
-                base64Decode(snapshot.data!),
-                fit: BoxFit.cover,
-              );
-            }
-            return Container(
-              color: Colors.grey[300],
-              child: const Center(
-                child: Icon(Icons.broken_image, size: 80, color: Colors.grey),
-              ),
-            );
-          },
         );
       } else {
         return Image.network(

@@ -7,8 +7,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../config/app_config.dart';
 import '../../services/image_service.dart';
 import '../../services/project_service.dart';
+import '../../services/gemini_service.dart';
 import '../../models/project_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CaptureScreen extends StatefulWidget {
   const CaptureScreen({super.key});
@@ -20,6 +22,7 @@ class CaptureScreen extends StatefulWidget {
 class _CaptureScreenState extends State<CaptureScreen> {
   final _imageService = ImageService();
   final _projectService = ProjectService();
+  final _geminiService = GeminiService();
   final _picker = ImagePicker();
   
   dynamic _selectedImage; // File no mobile, XFile na web
@@ -85,7 +88,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
       final base64Image = base64Encode(bytes);
 
       // Salvar imagem usando o método uploadImage
-      await _imageService.uploadImage(
+      final recordId = await _imageService.uploadImage(
         projectId: _selectedProject!.id,
         capturePointId: _selectedCapturePoint ?? 'default',
         imageBase64: base64Image,
@@ -100,6 +103,55 @@ class _CaptureScreenState extends State<CaptureScreen> {
             backgroundColor: Colors.green,
           ),
         );
+      }
+
+      // Verificar se análise automática está ativada
+      final prefs = await SharedPreferences.getInstance();
+      final autoAnalysis = prefs.getBool('auto_analysis') ?? true;
+
+      if (autoAnalysis && mounted) {
+        // Mostrar feedback de processamento
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('🤖 Processando análise de IA...'),
+            backgroundColor: Colors.blue,
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        try {
+          // Criar data URI para a imagem
+          final dataUri = 'data:image/jpeg;base64,$base64Image';
+
+          // Executar análise com Gemini
+          await _geminiService.analyzeConstructionImage(
+            recordId,
+            dataUri,
+            _selectedProject!.id,
+          );
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('✅ Análise concluída!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } catch (e) {
+          debugPrint('Erro na análise automática: $e');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('⚠️ Erro na análise: ${e.toString().contains('API') ? 'Configure a chave da API do Gemini' : e.toString()}'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        }
+      }
+
+      if (mounted) {
         Navigator.of(context).pop();
       }
     } catch (e) {

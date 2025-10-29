@@ -36,19 +36,13 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Pegar o userId do usuário logado
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) {
-        throw Exception('Usuário não está logado');
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('Usuário não autenticado');
       }
 
-      print('=== CRIANDO PROJETO ===');
-      print('Nome: ${_nameController.text.trim()}');
-      print('UserId: ${currentUser.uid}');
-      
       ProjectModel newProject = ProjectModel(
         id: '',
-        userId: currentUser.uid,
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         location: _locationController.text.trim(),
@@ -58,10 +52,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
         responsibleEngineers: [],
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        userId: user.uid,
       );
 
-      final projectId = await _projectService.createProject(newProject);
-      print('✅ Projeto criado com ID: $projectId');
+      await _projectService.createProject(newProject);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -73,7 +67,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
         Navigator.of(context).pop();
       }
     } catch (e) {
-      print('❌ Erro ao criar projeto: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -94,7 +87,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Novo Projeto'),
-        backgroundColor: AppConfig.primaryColor,
       ),
       body: Form(
         key: _formKey,
@@ -124,7 +116,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
               maxLines: 3,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Digite a descrição do projeto';
+                  return 'Digite a descrição';
                 }
                 return null;
               },
@@ -138,48 +130,9 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Digite a localização do projeto';
+                  return 'Digite a localização';
                 }
                 return null;
-              },
-            ),
-            const SizedBox(height: AppConfig.paddingNormal),
-            ListTile(
-              leading: const Icon(Icons.calendar_today),
-              title: const Text('Data de Início'),
-              subtitle: Text(
-                '${_startDate.day}/${_startDate.month}/${_startDate.year}',
-              ),
-              onTap: () async {
-                final date = await showDatePicker(
-                  context: context,
-                  initialDate: _startDate,
-                  firstDate: DateTime(2020),
-                  lastDate: DateTime(2030),
-                );
-                if (date != null) {
-                  setState(() => _startDate = date);
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.event),
-              title: const Text('Data Prevista de Término'),
-              subtitle: Text(
-                _endDate != null
-                    ? '${_endDate!.day}/${_endDate!.month}/${_endDate!.year}'
-                    : 'Não definida',
-              ),
-              onTap: () async {
-                final date = await showDatePicker(
-                  context: context,
-                  initialDate: _endDate ?? _startDate.add(const Duration(days: 30)),
-                  firstDate: _startDate,
-                  lastDate: DateTime(2030),
-                );
-                if (date != null) {
-                  setState(() => _endDate = date);
-                }
               },
             ),
             const SizedBox(height: AppConfig.paddingLarge),
@@ -187,14 +140,19 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
               onPressed: _isLoading ? null : _createProject,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppConfig.primaryColor,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 50),
               ),
               child: _isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                      'Criar Projeto',
-                      style: TextStyle(fontSize: 16),
-                    ),
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Criar Projeto'),
             ),
           ],
         ),

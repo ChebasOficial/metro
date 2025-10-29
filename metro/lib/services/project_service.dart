@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../models/project_model.dart';
 
@@ -57,6 +58,24 @@ class ProjectService {
   Stream<List<ProjectModel>> getAllProjects() {
     return _firestore
         .collection('projects')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ProjectModel.fromFirestore(doc))
+            .toList());
+  }
+
+  // Obter projetos do usuário atual
+  Stream<List<ProjectModel>> getUserProjects() {
+    // Importar Firebase Auth para obter usuário atual
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return Stream.value([]);
+    }
+    
+    return _firestore
+        .collection('projects')
+        .where('userId', isEqualTo: user.uid)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs

@@ -86,6 +86,10 @@ class ImageService {
     Map<String, dynamic>? metadata,
   }) async {
     try {
+      // Buscar nome do usuário
+      final user = FirebaseAuth.instance.currentUser;
+      final userName = user?.email?.split('@').first ?? 'Usuário';
+
       ImageRecordModel record = ImageRecordModel(
         id: '',
         projectId: projectId,
@@ -93,9 +97,7 @@ class ImageService {
         imageUrl: imageId, // URL da imagem
         thumbnailUrl: imageId, // Mesma URL por enquanto
         capturedBy: userId,
-        capturedByName: FirebaseAuth.instance.currentUser?.displayName ?? 
-                         FirebaseAuth.instance.currentUser?.email?.split('@').first ?? 
-                         'Usuário',
+        capturedByName: userName,
         captureDate: DateTime.now(),
         analysisStatus: 'pending',
         metadata: metadata,
@@ -251,6 +253,10 @@ class ImageService {
       // Criar data URI para a imagem
       final dataUri = 'data:image/jpeg;base64,$imageBase64';
       
+      // Buscar nome do usuário
+      final user = FirebaseAuth.instance.currentUser;
+      final userName = user?.email?.split('@').first ?? 'Usuário';
+
       // Criar registro de imagem
       ImageRecordModel record = ImageRecordModel(
         id: '',
@@ -260,9 +266,7 @@ class ImageService {
         thumbnailUrl: dataUri,
         imageBase64: imageBase64,
         capturedBy: capturedBy,
-        capturedByName: FirebaseAuth.instance.currentUser?.displayName ?? 
-                         FirebaseAuth.instance.currentUser?.email?.split('@').first ?? 
-                         'Usuário',
+        capturedByName: userName,
         captureDate: DateTime.now(),
         analysisStatus: 'pending',
         metadata: notes != null ? {'notes': notes} : null,
