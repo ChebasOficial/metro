@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/image_record_model.dart';
@@ -92,7 +93,9 @@ class ImageService {
         imageUrl: imageId, // URL da imagem
         thumbnailUrl: imageId, // Mesma URL por enquanto
         capturedBy: userId,
-        capturedByName: 'Usuário', // TODO: Buscar nome real do usuário
+        capturedByName: FirebaseAuth.instance.currentUser?.displayName ?? 
+                         FirebaseAuth.instance.currentUser?.email?.split('@').first ?? 
+                         'Usuário',
         captureDate: DateTime.now(),
         analysisStatus: 'pending',
         metadata: metadata,
@@ -257,7 +260,9 @@ class ImageService {
         thumbnailUrl: dataUri,
         imageBase64: imageBase64,
         capturedBy: capturedBy,
-        capturedByName: 'Usuário',
+        capturedByName: FirebaseAuth.instance.currentUser?.displayName ?? 
+                         FirebaseAuth.instance.currentUser?.email?.split('@').first ?? 
+                         'Usuário',
         captureDate: DateTime.now(),
         analysisStatus: 'pending',
         metadata: notes != null ? {'notes': notes} : null,

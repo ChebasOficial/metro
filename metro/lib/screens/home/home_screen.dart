@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../config/app_config.dart';
 import '../../services/auth_service.dart';
 import '../profile/profile_screen.dart';
+import '../projects/projects_list_screen.dart';
 import '../../main.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -21,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       const _DashboardPage(),
-      const _ProjectsPage(),
+      const ProjectsListScreen(showAppBar: false),
       const ProfileScreen(),
     ];
 
@@ -73,30 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Perfil',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Página temporária de projetos
-class _ProjectsPage extends StatelessWidget {
-  const _ProjectsPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.folder, size: 64, color: Colors.grey),
-          const SizedBox(height: 16),
-          const Text('Projetos', style: TextStyle(fontSize: 24)),
-          const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: () => Navigator.pushNamed(context, '/projects'),
-            child: const Text('Ver Todos os Projetos'),
           ),
         ],
       ),
