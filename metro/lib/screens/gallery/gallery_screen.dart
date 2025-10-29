@@ -164,7 +164,7 @@ class _ImageCard extends StatelessWidget {
 
   Widget _buildImage() {
     try {
-      // Se a imageUrl é Base64
+      // Se a imageUrl é Base64 (data URI)
       if (image.imageUrl.startsWith('data:image')) {
         final base64String = image.imageUrl.split(',')[1];
         return Image.memory(
@@ -172,13 +172,45 @@ class _ImageCard extends StatelessWidget {
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => _buildErrorWidget(),
         );
-      } else {
-        // Se for URL normal
+      }
+      // Se imageBase64 está disponível no modelo
+      else if (image.imageBase64 != null && image.imageBase64!.isNotEmpty) {
+        return Image.memory(
+          base64Decode(image.imageBase64!),
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _buildErrorWidget(),
+        );
+      }
+      // Se for um ID (formato antigo), buscar do Firestore
+      else if (image.imageUrl.startsWith('img_')) {
+        return FutureBuilder<String?>(
+          future: _imageService.getImageBase64(image.imageUrl),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasData && snapshot.data != null) {
+              return Image.memory(
+                base64Decode(snapshot.data!),
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _buildErrorWidget(),
+              );
+            }
+            return _buildErrorWidget();
+          },
+        );
+      }
+      // Se for URL HTTP/HTTPS
+      else if (image.imageUrl.startsWith('http')) {
         return Image.network(
           image.imageUrl,
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => _buildErrorWidget(),
         );
+      }
+      // Formato desconhecido
+      else {
+        return _buildErrorWidget();
       }
     } catch (e) {
       return _buildErrorWidget();

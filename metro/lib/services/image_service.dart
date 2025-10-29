@@ -245,13 +245,16 @@ class ImageService {
         'size': imageBase64.length,
       });
       
+      // Criar data URI para a imagem
+      final dataUri = 'data:image/jpeg;base64,$imageBase64';
+      
       // Criar registro de imagem
       ImageRecordModel record = ImageRecordModel(
         id: '',
         projectId: projectId,
         capturePointId: capturePointId,
-        imageUrl: imageId,
-        thumbnailUrl: imageId,
+        imageUrl: dataUri,
+        thumbnailUrl: dataUri,
         imageBase64: imageBase64,
         capturedBy: capturedBy,
         capturedByName: 'Usuário',

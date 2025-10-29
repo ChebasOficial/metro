@@ -6,7 +6,9 @@ import 'project_detail_screen.dart';
 import 'create_project_screen.dart';
 
 class ProjectsListScreen extends StatefulWidget {
-  const ProjectsListScreen({super.key});
+  final bool showAppBar;
+  
+  const ProjectsListScreen({super.key, this.showAppBar = true});
 
   @override
   State<ProjectsListScreen> createState() => _ProjectsListScreenState();
@@ -19,6 +21,14 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: widget.showAppBar ? AppBar(
+        title: const Text('Todos os Projetos'),
+        backgroundColor: AppConfig.primaryColor,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ) : null,
       body: Column(
         children: [
           // Filtros

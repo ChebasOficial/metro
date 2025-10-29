@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProjectModel {
   final String id;
+  final String userId; // ID do usuário que criou o projeto
   final String name;
   final String description;
   final String location;
@@ -15,6 +16,7 @@ class ProjectModel {
 
   ProjectModel({
     required this.id,
+    required this.userId,
     required this.name,
     required this.description,
     required this.location,
@@ -32,6 +34,7 @@ class ProjectModel {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return ProjectModel(
       id: doc.id,
+      userId: data['userId'] ?? '',
       name: data['name'] ?? '',
       description: data['description'] ?? '',
       location: data['location'] ?? '',
@@ -50,6 +53,7 @@ class ProjectModel {
   // Converter de Model para Firestore
   Map<String, dynamic> toFirestore() {
     return {
+      'userId': userId,
       'name': name,
       'description': description,
       'location': location,
@@ -68,6 +72,7 @@ class ProjectModel {
   // Criar cópia com modificações
   ProjectModel copyWith({
     String? id,
+    String? userId,
     String? name,
     String? description,
     String? location,
@@ -81,6 +86,7 @@ class ProjectModel {
   }) {
     return ProjectModel(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       name: name ?? this.name,
       description: description ?? this.description,
       location: location ?? this.location,
