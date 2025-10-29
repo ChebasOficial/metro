@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../config/app_config.dart';
 import '../../services/auth_service.dart';
 import '../profile/profile_screen.dart';
+import '../../main.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,6 +31,17 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppConfig.primaryColor,
         actions: [
           IconButton(
+            icon: Icon(
+              Theme.of(context).brightness == Brightness.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+            ),
+            onPressed: () {
+              MyApp.of(context)?.toggleTheme();
+            },
+            tooltip: 'Alternar tema',
+          ),
+          IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await _authService.signOut();
@@ -37,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pushReplacementNamed(context, '/login');
               }
             },
+            tooltip: 'Sair',
           ),
         ],
       ),
@@ -109,6 +122,15 @@ class _DashboardPageState extends State<_DashboardPage> {
   void initState() {
     super.initState();
     _loadStats();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Recarrega as estatísticas sempre que a tela se torna visível
+    if (ModalRoute.of(context)?.isCurrent == true) {
+      _loadStats();
+    }
   }
 
   Future<void> _loadStats() async {
