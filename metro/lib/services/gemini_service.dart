@@ -14,7 +14,7 @@ class GeminiService {
 
   GeminiService() {
     _model = GenerativeModel(
-      model: 'gemini-1.5-flash',
+      model: 'gemini-pro-vision',  // Modelo válido para análise de imagens
       apiKey: _apiKey,
     );
   }
