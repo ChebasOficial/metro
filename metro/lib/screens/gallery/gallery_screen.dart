@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../config/app_config.dart';
 import '../../services/image_service.dart';
+import '../../services/gemini_service.dart';
 import '../../models/image_record_model.dart';
 import 'dart:convert';
 
@@ -270,10 +271,19 @@ class _ImageCard extends StatelessWidget {
   }
 }
 
-class _ImageDetailScreen extends StatelessWidget {
+class _ImageDetailScreen extends StatefulWidget {
   final ImageRecordModel image;
 
   const _ImageDetailScreen({required this.image});
+
+  @override
+  State<_ImageDetailScreen> createState() => _ImageDetailScreenState();
+}
+
+class _ImageDetailScreenState extends State<_ImageDetailScreen> {
+  final _imageService = ImageService();
+  final _geminiService = GeminiService();
+  bool _isProcessing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -282,6 +292,13 @@ class _ImageDetailScreen extends StatelessWidget {
         title: const Text('Detalhes da Imagem'),
         backgroundColor: AppConfig.primaryColor,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: _deleteImage,
+            tooltip: 'Deletar imagem',
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -302,28 +319,87 @@ class _ImageDetailScreen extends StatelessWidget {
                   _buildInfoRow(
                     Icons.calendar_today,
                     'Data de Captura',
-                    _formatDate(image.captureDate),
+                    _formatDate(widget.image.captureDate),
                   ),
                   const SizedBox(height: AppConfig.paddingNormal),
                   _buildInfoRow(
                     Icons.person,
                     'Capturado por',
-                    image.capturedByName,
+                    widget.image.capturedByName,
                   ),
                   const SizedBox(height: AppConfig.paddingNormal),
                   _buildInfoRow(
                     Icons.analytics,
                     'Status da Análise',
-                    _getStatusLabel(image.analysisStatus),
+                    _getStatusLabel(widget.image.analysisStatus),
                   ),
-                  if (image.latitude != null && image.longitude != null) ...[
+                  // Mostrar motivo da falha se houver
+                  if (widget.image.analysisStatus == 'failed' && widget.image.metadata?['error'] != null) ..[
+                    const SizedBox(height: AppConfig.paddingSmall),
+                    Container(
+                      padding: const EdgeInsets.all(AppConfig.paddingNormal),
+                      decoration: BoxDecoration(
+                        color: Colors.red[50],
+                        borderRadius: BorderRadius.circular(AppConfig.radiusNormal),
+                        border: Border.all(color: Colors.red[200]!),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.error_outline, color: Colors.red[700]),
+                          const SizedBox(width: AppConfig.paddingSmall),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Motivo da Falha:',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.red[700],
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  widget.image.metadata!['error'],
+                                  style: TextStyle(color: Colors.red[900]),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  if (widget.image.latitude != null && widget.image.longitude != null) ...[
                     const SizedBox(height: AppConfig.paddingNormal),
                     _buildInfoRow(
                       Icons.location_on,
                       'Localização',
-                      '${image.latitude}, ${image.longitude}',
+                      '${widget.image.latitude}, ${widget.image.longitude}',
                     ),
                   ],
+                  // Botões de ação
+                  const SizedBox(height: AppConfig.paddingLarge),
+                  if (widget.image.analysisStatus == 'failed' || widget.image.analysisStatus == 'pending')
+                    ElevatedButton.icon(
+                      onPressed: _isProcessing ? null : _reprocessAnalysis,
+                      icon: _isProcessing
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Icon(Icons.refresh),
+                      label: Text(_isProcessing ? 'Processando...' : 'Reprocessar Análise'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppConfig.primaryColor,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -333,17 +409,114 @@ class _ImageDetailScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _deleteImage() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Deletar Imagem'),
+        content: const Text('Tem certeza que deseja deletar esta imagem? Esta ação não pode ser desfeita.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppConfig.errorColor,
+            ),
+            child: const Text('Deletar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && mounted) {
+      try {
+        // Extrair imageId da imageUrl
+        String imageId = widget.image.imageUrl;
+        if (imageId.startsWith('data:image')) {
+          // Se for data URI, usar o ID do registro
+          imageId = widget.image.id;
+        }
+
+        await _imageService.deleteImage(widget.image.id, imageId);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Imagem deletada com sucesso!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erro ao deletar imagem: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _reprocessAnalysis() async {
+    setState(() => _isProcessing = true);
+
+    try {
+      // Atualizar status para processing
+      await _imageService.updateAnalysisStatus(
+        widget.image.id,
+        'processing',
+      );
+
+      // Executar análise
+      await _geminiService.analyzeConstructionImage(
+        widget.image.id,
+        widget.image.imageUrl,
+        widget.image.projectId,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Análise concluída com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('⚠️ Erro ao reprocessar: ${e.toString()}'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
+    }
+  }
+
   Widget _buildImage() {
     try {
-      if (image.imageUrl.startsWith('data:image')) {
-        final base64String = image.imageUrl.split(',')[1];
+      if (widget.image.imageUrl.startsWith('data:image')) {
+        final base64String = widget.image.imageUrl.split(',')[1];
         return Image.memory(
           base64Decode(base64String),
           fit: BoxFit.cover,
         );
       } else {
         return Image.network(
-          image.imageUrl,
+          widget.image.imageUrl,
           fit: BoxFit.cover,
         );
       }

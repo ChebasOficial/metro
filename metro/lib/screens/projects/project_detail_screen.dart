@@ -1,23 +1,206 @@
 import 'package:flutter/material.dart';
 import '../../models/project_model.dart';
+import '../../services/project_service.dart';
 import '../../config/app_config.dart';
 
-class ProjectDetailScreen extends StatelessWidget {
+class ProjectDetailScreen extends StatefulWidget {
   final ProjectModel project;
 
   const ProjectDetailScreen({super.key, required this.project});
 
   @override
+  State<ProjectDetailScreen> createState() => _ProjectDetailScreenState();
+}
+
+class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
+  final _projectService = ProjectService();
+  bool _isProcessing = false;
+
+  Future<void> _updateStatus(String newStatus) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(newStatus == 'pausado' ? 'Pausar Projeto' : 'Concluir Projeto'),
+        content: Text(
+          newStatus == 'pausado'
+              ? 'Deseja pausar este projeto?'
+              : 'Deseja marcar este projeto como concluído?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: newStatus == 'pausado' ? Colors.orange : Colors.green,
+            ),
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && mounted) {
+      try {
+        setState(() => _isProcessing = true);
+
+        await _projectService.updateProjectStatus(widget.project.id, newStatus);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                newStatus == 'pausado'
+                    ? 'Projeto pausado com sucesso!'
+                    : 'Projeto concluído com sucesso!',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erro ao atualizar projeto: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isProcessing = false);
+        }
+      }
+    }
+  }
+
+  Future<void> _deleteProject() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Excluir Projeto'),
+        content: const Text(
+          'Tem certeza que deseja excluir este projeto? Esta ação não pode ser desfeita e todas as imagens e análises associadas serão perdidas.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppConfig.errorColor,
+            ),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && mounted) {
+      try {
+        setState(() => _isProcessing = true);
+
+        await _projectService.deleteProject(widget.project.id);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Projeto excluído com sucesso!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erro ao excluir projeto: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isProcessing = false);
+        }
+      }
+    }
+  }
+
+  String _getStatusLabel(String status) {
+    switch (status) {
+      case 'em_andamento':
+        return 'Em Andamento';
+      case 'pausado':
+        return 'Pausado';
+      case 'concluido':
+        return 'Concluído';
+      default:
+        return status;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(project.name),
+        title: Text(widget.project.name),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              // TODO: Navegar para edição do projeto
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              switch (value) {
+                case 'pausar':
+                  _updateStatus('pausado');
+                  break;
+                case 'concluir':
+                  _updateStatus('concluido');
+                  break;
+                case 'deletar':
+                  _deleteProject();
+                  break;
+              }
             },
+            itemBuilder: (context) => [
+              if (widget.project.status == 'em_andamento')
+                const PopupMenuItem(
+                  value: 'pausar',
+                  child: Row(
+                    children: [
+                      Icon(Icons.pause_circle, color: Colors.orange),
+                      SizedBox(width: 8),
+                      Text('Pausar Projeto'),
+                    ],
+                  ),
+                ),
+              if (widget.project.status != 'concluido')
+                const PopupMenuItem(
+                  value: 'concluir',
+                  child: Row(
+                    children: [
+                      Icon(Icons.check_circle, color: Colors.green),
+                      SizedBox(width: 8),
+                      Text('Concluir Projeto'),
+                    ],
+                  ),
+                ),
+              const PopupMenuItem(
+                value: 'deletar',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Excluir Projeto'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -43,17 +226,17 @@ class ProjectDetailScreen extends StatelessWidget {
                     _InfoRow(
                       icon: Icons.description,
                       label: 'Descrição',
-                      value: project.description,
+                      value: widget.project.description,
                     ),
                     _InfoRow(
                       icon: Icons.location_on,
                       label: 'Localização',
-                      value: project.location,
+                      value: widget.project.location,
                     ),
                     _InfoRow(
                       icon: Icons.info,
                       label: 'Status',
-                      value: project.status,
+                      value: _getStatusLabel(widget.project.status),
                     ),
                   ],
                 ),
