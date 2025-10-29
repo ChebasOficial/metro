@@ -23,9 +23,8 @@ class ProfileScreen extends StatelessWidget {
           CircleAvatar(
             radius: 50,
             backgroundColor: AppConfig.primaryColor,
-            backgroundImage: user.photoURL != null
-                ? NetworkImage(user.photoURL!)
-                : null,
+            backgroundImage:
+                user.photoURL != null ? NetworkImage(user.photoURL!) : null,
             child: user.photoURL == null
                 ? Text(
                     _getInitials(user.displayName ?? user.email ?? 'U'),
@@ -72,7 +71,9 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  user.emailVerified ? 'EMAIL VERIFICADO' : 'EMAIL NÃO VERIFICADO',
+                  user.emailVerified
+                      ? 'EMAIL VERIFICADO'
+                      : 'EMAIL NÃO VERIFICADO',
                   style: TextStyle(
                     color: user.emailVerified ? Colors.green : Colors.orange,
                     fontWeight: FontWeight.bold,
@@ -225,7 +226,7 @@ class ProfileScreen extends StatelessWidget {
 
   String _getProviderName(List<UserInfo> providers) {
     if (providers.isEmpty) return 'Desconhecido';
-    
+
     final provider = providers.first.providerId;
     switch (provider) {
       case 'password':
@@ -344,7 +345,8 @@ class ProfileScreen extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              if (newPasswordController.text != confirmPasswordController.text) {
+              if (newPasswordController.text !=
+                  confirmPasswordController.text) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('As senhas não coincidem!'),
@@ -391,4 +393,3 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 }
-
