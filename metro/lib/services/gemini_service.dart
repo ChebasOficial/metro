@@ -9,7 +9,9 @@ import '../models/image_record_model.dart';
 class GeminiService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late final GenerativeModel _model;
-  static const String _apiKey = 'YOUR_GEMINI_API_KEY'; // TODO: Mover para variável de ambiente
+  // IMPORTANTE: Substitua 'YOUR_GEMINI_API_KEY' pela sua chave real do Google AI Studio
+  // Obtenha em: https://makersuite.google.com/app/apikey
+  static const String _apiKey = 'YOUR_GEMINI_API_KEY';
 
   GeminiService() {
     _model = GenerativeModel(
