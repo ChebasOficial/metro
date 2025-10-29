@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
@@ -27,17 +28,26 @@ class GeminiService {
     Map<String, dynamic>? bimData,
   }) async {
     try {
-      // Baixar imagem
-      final httpClient = HttpClient();
-      final request = await httpClient.getUrl(Uri.parse(imageUrl));
-      final response = await request.close();
+      Uint8List imageBytes;
       
-      // Converter para Uint8List
-      final List<int> bytesList = await response.fold<List<int>>(
-        [],
-        (previous, element) => previous..addAll(element),
-      );
-      final Uint8List imageBytes = Uint8List.fromList(bytesList);
+      // Verificar se é data URI ou URL normal
+      if (imageUrl.startsWith('data:image')) {
+        // É data URI - extrair base64
+        final base64String = imageUrl.split(',')[1];
+        imageBytes = base64Decode(base64String);
+      } else {
+        // É URL normal - baixar imagem
+        final httpClient = HttpClient();
+        final request = await httpClient.getUrl(Uri.parse(imageUrl));
+        final response = await request.close();
+        
+        // Converter para Uint8List
+        final List<int> bytesList = await response.fold<List<int>>(
+          [],
+          (previous, element) => previous..addAll(element),
+        );
+        imageBytes = Uint8List.fromList(bytesList);
+      }
 
       // Preparar prompt
       String prompt = _buildAnalysisPrompt(constructionPhase, bimData);
@@ -77,13 +87,14 @@ class GeminiService {
     } catch (e) {
       debugPrint('Erro ao analisar imagem: $e');
       
-      // Atualizar status como falho
+      // Atualizar status como falho com mensagem de erro
       await _firestore.collection('image_records').doc(imageRecordId).update({
         'analysisStatus': 'failed',
+        'metadata.error': e.toString(),
         'updatedAt': Timestamp.now(),
       });
       
-      return null;
+      rethrow; // Lançar erro para ser capturado no capture_screen
     }
   }
 
