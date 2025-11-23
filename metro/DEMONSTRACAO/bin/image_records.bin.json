@@ -1,0 +1,98 @@
+[
+  {
+    "id": "img_001_fundacao_se",
+    "projectId": "proj_001_estacao_se",
+    "capturePointId": "cp_se_fundacao_01",
+    "imageUrl": "data:image/jpeg;base64,[BASE64_DATA_1]",
+    "thumbnailUrl": "data:image/jpeg;base64,[BASE64_DATA_1]",
+    "imageBase64": "[BASE64_DATA_1]",
+    "captureDate": "2024-10-15T09:30:00.000Z",
+    "capturedBy": "user_teste_001",
+    "capturedByName": "teste",
+    "latitude": -23.5505,
+    "longitude": -46.6333,
+    "constructionPhase": "Fundação",
+    "metadata": {
+      "weather": "Ensolarado",
+      "temperature": "25°C",
+      "camera": "iPhone 14 Pro",
+      "notes": "Início da fundação da nova área de acessibilidade"
+    },
+    "analysisStatus": "completed",
+    "analysisId": "analysis_001",
+    "createdAt": "2024-10-15T09:30:00.000Z",
+    "updatedAt": "2024-10-15T09:35:00.000Z"
+  },
+  {
+    "id": "img_002_estrutura_se",
+    "projectId": "proj_001_estacao_se",
+    "capturePointId": "cp_se_estrutura_01",
+    "imageUrl": "data:image/jpeg;base64,[BASE64_DATA_2]",
+    "thumbnailUrl": "data:image/jpeg;base64,[BASE64_DATA_2]",
+    "imageBase64": "[BASE64_DATA_2]",
+    "captureDate": "2024-10-20T14:15:00.000Z",
+    "capturedBy": "user_teste_001",
+    "capturedByName": "teste",
+    "latitude": -23.5505,
+    "longitude": -46.6333,
+    "constructionPhase": "Estrutura",
+    "metadata": {
+      "weather": "Parcialmente nublado",
+      "temperature": "22°C",
+      "camera": "Samsung Galaxy S23",
+      "notes": "Pilares e vigas da nova estrutura em andamento"
+    },
+    "analysisStatus": "completed",
+    "analysisId": "analysis_002",
+    "createdAt": "2024-10-20T14:15:00.000Z",
+    "updatedAt": "2024-10-20T14:20:00.000Z"
+  },
+  {
+    "id": "img_003_alvenaria_linha6",
+    "projectId": "proj_002_linha_6_laranja",
+    "capturePointId": "cp_l6_alvenaria_01",
+    "imageUrl": "data:image/jpeg;base64,[BASE64_DATA_3]",
+    "thumbnailUrl": "data:image/jpeg;base64,[BASE64_DATA_3]",
+    "imageBase64": "[BASE64_DATA_3]",
+    "captureDate": "2024-10-22T10:45:00.000Z",
+    "capturedBy": "user_teste_001",
+    "capturedByName": "teste",
+    "latitude": -23.4856,
+    "longitude": -46.6889,
+    "constructionPhase": "Alvenaria",
+    "metadata": {
+      "weather": "Nublado",
+      "temperature": "20°C",
+      "camera": "Canon EOS R5",
+      "notes": "Paredes e divisórias em construção"
+    },
+    "analysisStatus": "completed",
+    "analysisId": "analysis_003",
+    "createdAt": "2024-10-22T10:45:00.000Z",
+    "updatedAt": "2024-10-22T10:50:00.000Z"
+  },
+  {
+    "id": "img_004_acabamento_linha6",
+    "projectId": "proj_002_linha_6_laranja",
+    "capturePointId": "cp_l6_acabamento_01",
+    "imageUrl": "data:image/jpeg;base64,[BASE64_DATA_4]",
+    "thumbnailUrl": "data:image/jpeg;base64,[BASE64_DATA_4]",
+    "imageBase64": "[BASE64_DATA_4]",
+    "captureDate": "2024-10-25T16:00:00.000Z",
+    "capturedBy": "user_teste_001",
+    "capturedByName": "teste",
+    "latitude": -23.4856,
+    "longitude": -46.6889,
+    "constructionPhase": "Acabamento",
+    "metadata": {
+      "weather": "Ensolarado",
+      "temperature": "28°C",
+      "camera": "iPhone 14 Pro",
+      "notes": "Instalações e acabamentos finais"
+    },
+    "analysisStatus": "completed",
+    "analysisId": "analysis_004",
+    "createdAt": "2024-10-25T16:00:00.000Z",
+    "updatedAt": "2024-10-25T16:05:00.000Z"
+  }
+]

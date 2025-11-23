@@ -1,0 +1,89 @@
+[
+  {
+    "id": "proj_001_estacao_se",
+    "name": "Estação Sé - Linha 1 Azul",
+    "description": "Reforma e modernização da Estação Sé do Metrô de São Paulo, incluindo acessibilidade, novos sistemas de ventilação e atualização de plataformas.",
+    "location": "Praça da Sé, s/n - Sé, São Paulo - SP, 01001-000",
+    "startDate": "2024-01-15T00:00:00.000Z",
+    "expectedEndDate": "2025-06-30T00:00:00.000Z",
+    "status": "em_andamento",
+    "responsibleEngineers": [
+      "Eng. Carlos Silva",
+      "Eng. Maria Santos"
+    ],
+    "bimData": {
+      "modelVersion": "v2.1",
+      "lastUpdate": "2024-10-20",
+      "totalArea": 12500.5,
+      "floors": 3
+    },
+    "userId": "user_teste_001",
+    "createdAt": "2024-01-10T10:30:00.000Z",
+    "updatedAt": "2024-10-28T15:45:00.000Z"
+  },
+  {
+    "id": "proj_002_linha_6_laranja",
+    "name": "Linha 6 - Laranja - Trecho Brasilândia",
+    "description": "Construção de novo trecho da Linha 6 Laranja do Metrô SP, conectando a região da Brasilândia ao centro expandido da cidade.",
+    "location": "Av. Inajar de Souza, 5555 - Brasilândia, São Paulo - SP",
+    "startDate": "2024-03-01T00:00:00.000Z",
+    "expectedEndDate": "2026-12-31T00:00:00.000Z",
+    "status": "em_andamento",
+    "responsibleEngineers": [
+      "Eng. João Oliveira",
+      "Eng. Ana Paula Costa"
+    ],
+    "bimData": {
+      "modelVersion": "v1.8",
+      "lastUpdate": "2024-10-25",
+      "totalArea": 45000.0,
+      "floors": 2
+    },
+    "userId": "user_teste_001",
+    "createdAt": "2024-02-20T09:00:00.000Z",
+    "updatedAt": "2024-10-28T14:20:00.000Z"
+  },
+  {
+    "id": "proj_003_patio_jabaquara",
+    "name": "Pátio de Manutenção Jabaquara",
+    "description": "Ampliação e modernização do pátio de manutenção de trens da Linha 1 Azul, localizado no Jabaquara.",
+    "location": "Rua dos Vianas, 1000 - Jabaquara, São Paulo - SP",
+    "startDate": "2024-05-10T00:00:00.000Z",
+    "expectedEndDate": "2025-03-31T00:00:00.000Z",
+    "status": "pausado",
+    "responsibleEngineers": [
+      "Eng. Roberto Ferreira"
+    ],
+    "bimData": {
+      "modelVersion": "v1.5",
+      "lastUpdate": "2024-09-15",
+      "totalArea": 28000.0,
+      "floors": 1
+    },
+    "userId": "user_teste_001",
+    "createdAt": "2024-05-01T11:15:00.000Z",
+    "updatedAt": "2024-10-15T16:30:00.000Z"
+  },
+  {
+    "id": "proj_004_estacao_vila_sonia",
+    "name": "Estação Vila Sônia - Linha 4 Amarela",
+    "description": "Construção da nova estação Vila Sônia, parte da extensão da Linha 4 Amarela do Metrô de São Paulo.",
+    "location": "Av. Prof. Francisco Morato, 3000 - Vila Sônia, São Paulo - SP",
+    "startDate": "2023-08-01T00:00:00.000Z",
+    "expectedEndDate": "2024-11-30T00:00:00.000Z",
+    "status": "concluido",
+    "responsibleEngineers": [
+      "Eng. Patricia Lima",
+      "Eng. Fernando Alves"
+    ],
+    "bimData": {
+      "modelVersion": "v3.0",
+      "lastUpdate": "2024-10-01",
+      "totalArea": 8500.0,
+      "floors": 2
+    },
+    "userId": "user_teste_001",
+    "createdAt": "2023-07-15T08:00:00.000Z",
+    "updatedAt": "2024-10-28T10:00:00.000Z"
+  }
+]
