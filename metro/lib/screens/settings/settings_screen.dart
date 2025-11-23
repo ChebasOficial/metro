@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../config/app_config.dart';
+import '../../main.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -12,11 +13,12 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationsEnabled = true;
   bool _autoAnalysis = true;
-  bool _darkMode = false;
   String _imageQuality = 'high';
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Configurações'),
@@ -77,15 +79,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSwitchTile(
             title: 'Modo Escuro',
             subtitle: 'Usar tema escuro no aplicativo',
-            value: _darkMode,
+            value: isDarkMode,
             onChanged: (value) {
-              setState(() => _darkMode = value);
-              // TODO: Implementar mudança de tema
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Funcionalidade em desenvolvimento'),
-                ),
-              );
+              MyApp.of(context)?.toggleTheme();
             },
             icon: Icons.dark_mode,
           ),
@@ -105,10 +101,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: 'Ler os termos de uso do aplicativo',
             icon: Icons.description,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Funcionalidade em desenvolvimento'),
-                ),
+              _showInfoDialog(
+                'Termos de Uso',
+                'Este aplicativo é fornecido "como está" para fins de monitoramento de obras. '
+                'Ao usar este aplicativo, você concorda em utilizá-lo de forma responsável e ética.',
               );
             },
           ),
@@ -117,10 +113,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: 'Como tratamos seus dados',
             icon: Icons.privacy_tip,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Funcionalidade em desenvolvimento'),
-                ),
+              _showInfoDialog(
+                'Política de Privacidade',
+                'Seus dados são armazenados de forma segura no Firebase. '
+                'Não compartilhamos suas informações com terceiros. '
+                'As imagens capturadas são armazenadas apenas para fins de monitoramento.',
               );
             },
           ),
@@ -233,6 +230,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
       default:
         return quality;
     }
+  }
+
+  void _showInfoDialog(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Fechar'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showLogoutDialog() {

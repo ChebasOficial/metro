@@ -1,11 +1,9 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/image_record_model.dart';
-import 'demo_data_service.dart';
 
 class ImageService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -87,10 +85,6 @@ class ImageService {
     Map<String, dynamic>? metadata,
   }) async {
     try {
-      // Buscar nome do usuário
-      final user = FirebaseAuth.instance.currentUser;
-      final userName = user?.email?.split('@').first ?? 'Usuário';
-
       ImageRecordModel record = ImageRecordModel(
         id: '',
         projectId: projectId,
@@ -98,7 +92,7 @@ class ImageService {
         imageUrl: imageId, // URL da imagem
         thumbnailUrl: imageId, // Mesma URL por enquanto
         capturedBy: userId,
-        capturedByName: userName,
+        capturedByName: 'Usuário', // TODO: Buscar nome real do usuário
         captureDate: DateTime.now(),
         analysisStatus: 'pending',
         metadata: metadata,
@@ -167,51 +161,27 @@ class ImageService {
             .toList());
   }
 
-  // Obter todas as imagens de um projeto (Firebase + Demonstração)
-  Stream<List<ImageRecordModel>> getProjectImages(String projectId) async* {
-    // Carregar dados de demonstração
-    final demoService = DemoDataService();
-    if (!demoService.isLoaded) {
-      await demoService.loadDemoData();
-    }
-    final demoImages = demoService.getImagesForProject(projectId);
-    
-    // Combinar com imagens do Firebase
-    await for (final snapshot in _firestore
+  // Obter todas as imagens de um projeto
+  Stream<List<ImageRecordModel>> getProjectImages(String projectId) {
+    return _firestore
         .collection('image_records')
         .where('projectId', isEqualTo: projectId)
         .orderBy('captureDate', descending: true)
-        .snapshots()) {
-      final firebaseImages = snapshot.docs
-          .map((doc) => ImageRecordModel.fromFirestore(doc))
-          .toList();
-      
-      // Combinar: dados de demonstração primeiro, depois Firebase
-      yield [...demoImages, ...firebaseImages];
-    }
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ImageRecordModel.fromFirestore(doc))
+            .toList());
   }
 
-  // Obter todas as imagens (Firebase + Demonstração)
-  Stream<List<ImageRecordModel>> getAllImages() async* {
-    // Carregar dados de demonstração
-    final demoService = DemoDataService();
-    if (!demoService.isLoaded) {
-      await demoService.loadDemoData();
-    }
-    final demoImages = demoService.demoImages;
-    
-    // Combinar com imagens do Firebase
-    await for (final snapshot in _firestore
+  // Obter todas as imagens
+  Stream<List<ImageRecordModel>> getAllImages() {
+    return _firestore
         .collection('image_records')
         .orderBy('captureDate', descending: true)
-        .snapshots()) {
-      final firebaseImages = snapshot.docs
-          .map((doc) => ImageRecordModel.fromFirestore(doc))
-          .toList();
-      
-      // Combinar: dados de demonstração primeiro, depois Firebase
-      yield [...demoImages, ...firebaseImages];
-    }
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ImageRecordModel.fromFirestore(doc))
+            .toList());
   }
 
   // Obter imagens por projeto (alias para compatibilidade)
@@ -278,10 +248,6 @@ class ImageService {
       // Criar data URI para a imagem
       final dataUri = 'data:image/jpeg;base64,$imageBase64';
       
-      // Buscar nome do usuário
-      final user = FirebaseAuth.instance.currentUser;
-      final userName = user?.email?.split('@').first ?? 'Usuário';
-
       // Criar registro de imagem
       ImageRecordModel record = ImageRecordModel(
         id: '',
@@ -291,7 +257,7 @@ class ImageService {
         thumbnailUrl: dataUri,
         imageBase64: imageBase64,
         capturedBy: capturedBy,
-        capturedByName: userName,
+        capturedByName: 'Usuário',
         captureDate: DateTime.now(),
         analysisStatus: 'pending',
         metadata: notes != null ? {'notes': notes} : null,

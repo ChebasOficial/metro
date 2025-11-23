@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../services/auth_service.dart';
-import '../../services/project_service.dart';
-import '../../models/user_model.dart';
-import '../../models/project_model.dart';
 import '../../config/app_config.dart';
-import '../auth/login_screen.dart';
-import '../projects/projects_list_screen.dart';
-import '../projects/project_detail_screen.dart';
+import '../../services/auth_service.dart';
 import '../profile/profile_screen.dart';
+import '../../main.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,81 +14,60 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _authService = AuthService();
-  final _projectService = ProjectService();
-  
   int _selectedIndex = 0;
-  UserModel? _currentUser;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserData();
-  }
-
-  Future<void> _loadUserData() async {
-    User? firebaseUser = _authService.currentUser;
-    if (firebaseUser != null) {
-      UserModel? user = await _authService.getUserData(firebaseUser.uid);
-      setState(() {
-        _currentUser = user;
-        _isLoading = false;
-      });
-    } else {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+  final AuthService _authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
     final List<Widget> pages = [
-      _DashboardPage(currentUser: _currentUser),
-      const ProjectsListScreen(showAppBar: false),
-      ProfileScreen(currentUser: _currentUser),
+      const _DashboardPage(),
+      const _ProjectsPage(),
+      const ProfileScreen(),
     ];
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Metro SP - Monitoramento'),
+        title: const Text('Metro SP - Monitoramento de Obras'),
+        backgroundColor: AppConfig.primaryColor,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications),
+            icon: Icon(
+              Theme.of(context).brightness == Brightness.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+            ),
             onPressed: () {
-              Navigator.of(context).pushNamed('/alerts');
+              MyApp.of(context)?.toggleTheme();
             },
+            tooltip: 'Alternar tema',
           ),
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => _logout(),
+            onPressed: () async {
+              await _authService.signOut();
+              if (context.mounted) {
+                Navigator.pushReplacementNamed(context, '/login');
+              }
+            },
+            tooltip: 'Sair',
           ),
         ],
       ),
       body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
             label: 'Dashboard',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.construction),
+            icon: Icon(Icons.folder),
             label: 'Projetos',
           ),
           BottomNavigationBarItem(
@@ -104,53 +78,42 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
 
-  Future<void> _logout() async {
-    bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Sair'),
-        content: const Text('Deseja realmente sair?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
+// Página temporária de projetos
+class _ProjectsPage extends StatelessWidget {
+  const _ProjectsPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.folder, size: 64, color: Colors.grey),
+          const SizedBox(height: 16),
+          const Text('Projetos', style: TextStyle(fontSize: 24)),
+          const SizedBox(height: 32),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppConfig.errorColor,
-            ),
-            child: const Text('Sair'),
+            onPressed: () => Navigator.pushNamed(context, '/projects'),
+            child: const Text('Ver Todos os Projetos'),
           ),
         ],
       ),
     );
-
-    if (confirm == true) {
-      await _authService.signOut();
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
-      }
-    }
   }
 }
 
 class _DashboardPage extends StatefulWidget {
-  final UserModel? currentUser;
-
-  const _DashboardPage({this.currentUser});
+  const _DashboardPage();
 
   @override
   State<_DashboardPage> createState() => _DashboardPageState();
 }
 
 class _DashboardPageState extends State<_DashboardPage> {
-  final _projectService = ProjectService();
   int _activeProjects = 0;
-  int _todayImages = 0;
+  int _imagesToday = 0;
   int _openAlerts = 0;
   int _totalAnalyses = 0;
   bool _isLoading = true;
@@ -164,272 +127,252 @@ class _DashboardPageState extends State<_DashboardPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Atualiza os dados quando a tela volta a ser visível
-    _loadStats();
+    // Recarrega as estatísticas sempre que a tela se torna visível
+    if (ModalRoute.of(context)?.isCurrent == true) {
+      _loadStats();
+    }
   }
 
   Future<void> _loadStats() async {
+    print('==========================================');
+    print('=== CARREGANDO ESTATÍSTICAS DO DASHBOARD ===');
+    print('==========================================');
+    
     try {
-      debugPrint('=== Carregando estatísticas ===');
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        print('❌ ERRO: Usuário não está logado!');
+        return;
+      }
       
-      // Buscar projetos ativos
-      final projects = await _projectService.getUserProjects().first;
-      debugPrint('Total de projetos: ${projects.length}');
-      final active = projects.where((p) => p.status == 'em_andamento').length;
-      debugPrint('Projetos ativos: $active');
+      print('✅ Usuário logado: ${currentUser.email}');
+      print('✅ UID: ${currentUser.uid}');
       
-      // Buscar TODAS as imagens (sem filtro de data)
-      final allImagesSnapshot = await FirebaseFirestore.instance
-          .collection('image_records')
+      // 1. Contar projetos ativos
+      print('\n--- BUSCANDO PROJETOS ---');
+      final projectsSnapshot = await FirebaseFirestore.instance
+          .collection('projects')
+          .where('userId', isEqualTo: currentUser.uid)
           .get();
-      debugPrint('Total de imagens: ${allImagesSnapshot.docs.length}');
       
-      // Buscar imagens de hoje
+      print('Total de projetos encontrados: ${projectsSnapshot.docs.length}');
+      
+      int activeProjects = 0;
+      for (var doc in projectsSnapshot.docs) {
+        final data = doc.data();
+        final status = data['status'] ?? '';
+        final name = data['name'] ?? 'Sem nome';
+        print('  Projeto: $name - Status: $status');
+        if (status == 'em_andamento') {
+          activeProjects++;
+        }
+      }
+      print('Projetos ativos (em_andamento): $activeProjects');
+      
+      // 2. Contar imagens de hoje
+      print('\n--- BUSCANDO IMAGENS DE HOJE ---');
       final now = DateTime.now();
       final startOfDay = DateTime(now.year, now.month, now.day);
-      debugPrint('Início do dia: $startOfDay');
+      print('Início do dia: $startOfDay');
+      print('Agora: $now');
       
-      int todayCount = 0;
-      for (var doc in allImagesSnapshot.docs) {
+      final imagesSnapshot = await FirebaseFirestore.instance
+          .collection('image_records')
+          .get();
+      
+      print('Total de imagens no banco: ${imagesSnapshot.docs.length}');
+      
+      int imagesToday = 0;
+      for (var doc in imagesSnapshot.docs) {
         final data = doc.data();
-        if (data['captureDate'] != null) {
-          final captureDate = (data['captureDate'] as Timestamp).toDate();
+        final captureDate = (data['captureDate'] as Timestamp?)?.toDate();
+        if (captureDate != null) {
+          print('  Imagem: ${doc.id} - Data: $captureDate');
           if (captureDate.isAfter(startOfDay)) {
-            todayCount++;
+            imagesToday++;
+            print('    ✅ É de hoje!');
           }
         }
       }
-      debugPrint('Imagens hoje: $todayCount');
+      print('Imagens capturadas hoje: $imagesToday');
       
-      // Buscar alertas abertos
+      // 3. Contar alertas abertos
+      print('\n--- BUSCANDO ALERTAS ABERTOS ---');
       final alertsSnapshot = await FirebaseFirestore.instance
           .collection('alerts')
           .where('status', isEqualTo: 'open')
           .get();
-      debugPrint('Alertas abertos: ${alertsSnapshot.docs.length}');
+      print('Alertas abertos: ${alertsSnapshot.docs.length}');
       
-      // Buscar total de análises
+      // 4. Contar análises
+      print('\n--- BUSCANDO ANÁLISES ---');
       final analysesSnapshot = await FirebaseFirestore.instance
           .collection('analyses')
           .get();
-      debugPrint('Total de análises: ${analysesSnapshot.docs.length}');
+      print('Total de análises: ${analysesSnapshot.docs.length}');
+      
+      print('\n==========================================');
+      print('=== RESUMO DAS ESTATÍSTICAS ===');
+      print('Projetos Ativos: $activeProjects');
+      print('Imagens Hoje: $imagesToday');
+      print('Alertas Abertos: ${alertsSnapshot.docs.length}');
+      print('Análises: ${analysesSnapshot.docs.length}');
+      print('==========================================\n');
       
       setState(() {
-        _activeProjects = active;
-        _todayImages = todayCount;
+        _activeProjects = activeProjects;
+        _imagesToday = imagesToday;
         _openAlerts = alertsSnapshot.docs.length;
         _totalAnalyses = analysesSnapshot.docs.length;
         _isLoading = false;
       });
       
-      debugPrint('=== Estatísticas carregadas com sucesso ===');
+      print('✅ Estado atualizado com sucesso!');
+      
     } catch (e, stackTrace) {
-      debugPrint('Erro ao carregar estatísticas: $e');
-      debugPrint('Stack trace: $stackTrace');
-      setState(() => _isLoading = false);
+      print('\n❌ ERRO AO CARREGAR ESTATÍSTICAS:');
+      print('Erro: $e');
+      print('Stack trace: $stackTrace');
+      
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppConfig.paddingNormal),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Saudação
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(AppConfig.paddingNormal),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: AppConfig.primaryColor,
-                    child: Text(
-                      widget.currentUser?.name.substring(0, 1).toUpperCase() ?? 'U',
-                      style: const TextStyle(
-                        fontSize: AppConfig.textSizeXLarge,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppConfig.paddingNormal),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Olá, ${widget.currentUser?.name ?? 'Usuário'}!',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        Text(
-                          widget.currentUser?.role.toUpperCase() ?? 'VISUALIZADOR',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppConfig.primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: AppConfig.paddingLarge),
-
-          // Estatísticas Rápidas
-          Text(
+          const Text(
             'Visão Geral',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            style: TextStyle(
+              fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: AppConfig.paddingNormal),
-          
-          Row(
+          const SizedBox(height: 20),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
             children: [
-              Expanded(
-                child: _StatCard(
-                  icon: Icons.construction,
-                  title: 'Projetos Ativos',
-                  value: _isLoading ? '...' : '$_activeProjects',
-                  color: AppConfig.primaryColor,
-                ),
+              _buildStatCard(
+                icon: Icons.construction,
+                value: _activeProjects.toString(),
+                label: 'Projetos Ativos',
+                color: Colors.blue,
               ),
-              const SizedBox(width: AppConfig.paddingNormal),
-              Expanded(
-                child: _StatCard(
-                  icon: Icons.camera_alt,
-                  title: 'Imagens Hoje',
-                  value: _isLoading ? '...' : '$_todayImages',
-                  color: AppConfig.secondaryColor,
-                ),
+              _buildStatCard(
+                icon: Icons.photo_camera,
+                value: _imagesToday.toString(),
+                label: 'Imagens Hoje',
+                color: Colors.green,
+              ),
+              _buildStatCard(
+                icon: Icons.warning,
+                value: _openAlerts.toString(),
+                label: 'Alertas Abertos',
+                color: Colors.orange,
+              ),
+              _buildStatCard(
+                icon: Icons.analytics,
+                value: _totalAnalyses.toString(),
+                label: 'Análises',
+                color: Colors.purple,
               ),
             ],
           ),
-          const SizedBox(height: AppConfig.paddingNormal),
-          
-          Row(
-            children: [
-              Expanded(
-                child: _StatCard(
-                  icon: Icons.warning,
-                  title: 'Alertas Abertos',
-                  value: _isLoading ? '...' : '$_openAlerts',
-                  color: AppConfig.warningColor,
-                ),
-              ),
-              const SizedBox(width: AppConfig.paddingNormal),
-              Expanded(
-                child: _StatCard(
-                  icon: Icons.analytics,
-                  title: 'Análises',
-                  value: _isLoading ? '...' : '$_totalAnalyses',
-                  color: AppConfig.accentColor,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppConfig.paddingLarge),
-
-          // Ações Rápidas
-          Text(
-            'Ações Rápidas',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+          const SizedBox(height: 30),
+          const Text(
+            'Ações',
+            style: TextStyle(
+              fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: AppConfig.paddingNormal),
-          
-          _ActionButton(
-            icon: Icons.camera_alt,
-            label: 'Capturar Imagem',
-            color: AppConfig.primaryColor,
-            onTap: () {
-              Navigator.of(context).pushNamed('/capture');
-            },
-          ),
-          const SizedBox(height: AppConfig.paddingSmall),
-          
-          _ActionButton(
-            icon: Icons.construction,
-            label: 'Ver Todos os Projetos',
-            color: AppConfig.secondaryColor,
-            onTap: () {
-              Navigator.of(context).pushNamed('/projects');
-            },
-          ),
-          const SizedBox(height: AppConfig.paddingSmall),
-          
-          _ActionButton(
-            icon: Icons.photo_library,
-            label: 'Galeria de Imagens',
-            color: AppConfig.accentColor,
-            onTap: () {
-              Navigator.of(context).pushNamed('/gallery');
-            },
-          ),
-          const SizedBox(height: AppConfig.paddingSmall),
-          
-          _ActionButton(
-            icon: Icons.warning,
-            label: 'Ver Alertas',
-            color: AppConfig.warningColor,
-            onTap: () {
-              Navigator.of(context).pushNamed('/alerts');
-            },
-          ),
-          const SizedBox(height: AppConfig.paddingSmall),
-          
-          _ActionButton(
-            icon: Icons.psychology,
-            label: 'Análises de IA',
-            color: Colors.purple,
-            onTap: () {
-              Navigator.of(context).pushNamed('/analyses');
-            },
+          const SizedBox(height: 16),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            childAspectRatio: 2,
+            children: [
+              _ActionButton(
+                icon: Icons.camera_alt,
+                label: 'Capturar',
+                color: Colors.blue,
+                onTap: () => Navigator.pushNamed(context, '/capture'),
+              ),
+              _ActionButton(
+                icon: Icons.photo_library,
+                label: 'Galeria',
+                color: Colors.green,
+                onTap: () => Navigator.pushNamed(context, '/gallery'),
+              ),
+              _ActionButton(
+                icon: Icons.warning_amber,
+                label: 'Alertas',
+                color: Colors.orange,
+                onTap: () => Navigator.pushNamed(context, '/alerts'),
+              ),
+              _ActionButton(
+                icon: Icons.bar_chart,
+                label: 'Análises',
+                color: Colors.purple,
+                onTap: () => Navigator.pushNamed(context, '/analyses'),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
-}
 
-class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String value;
-  final Color color;
-
-  const _StatCard({
-    required this.icon,
-    required this.title,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildStatCard({
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+  }) {
     return Card(
+      elevation: 4,
       child: Padding(
-        padding: const EdgeInsets.all(AppConfig.paddingNormal),
+        padding: const EdgeInsets.all(16),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 32, color: color),
-            const SizedBox(height: AppConfig.paddingSmall),
+            Icon(icon, size: 48, color: color),
+            const SizedBox(height: 12),
             Text(
               value,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              style: TextStyle(
+                fontSize: 32,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
+            const SizedBox(height: 4),
             Text(
-              title,
-              style: Theme.of(context).textTheme.bodySmall,
+              label,
               textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
             ),
           ],
         ),
@@ -454,14 +397,27 @@ class _ActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.1),
-          child: Icon(icon, color: color),
-        ),
-        title: Text(label),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      elevation: 2,
+      child: InkWell(
         onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 24, color: color),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

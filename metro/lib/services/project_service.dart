@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../models/project_model.dart';
-import 'demo_data_service.dart';
 
 class ProjectService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -64,38 +62,6 @@ class ProjectService {
         .map((snapshot) => snapshot.docs
             .map((doc) => ProjectModel.fromFirestore(doc))
             .toList());
-  }
-
-  // Obter projetos do usuário atual (Firebase + Demonstração)
-  Stream<List<ProjectModel>> getUserProjects() async* {
-    // Carregar dados de demonstração
-    final demoService = DemoDataService();
-    if (!demoService.isLoaded) {
-      await demoService.loadDemoData();
-    }
-    final demoProjects = demoService.demoProjects;
-    
-    // Obter projetos do Firebase
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      // Se não estiver logado, retorna apenas dados de demonstração
-      yield demoProjects;
-      return;
-    }
-    
-    // Combinar projetos do Firebase com dados de demonstração
-    await for (final snapshot in _firestore
-        .collection('projects')
-        .where('userId', isEqualTo: user.uid)
-        .orderBy('createdAt', descending: true)
-        .snapshots()) {
-      final firebaseProjects = snapshot.docs
-          .map((doc) => ProjectModel.fromFirestore(doc))
-          .toList();
-      
-      // Combinar: dados de demonstração primeiro, depois Firebase
-      yield [...demoProjects, ...firebaseProjects];
-    }
   }
 
   // Obter projetos por status
