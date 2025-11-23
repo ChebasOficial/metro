@@ -38,6 +38,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadUserData() async {
     User? firebaseUser = _authService.currentUser;
     if (firebaseUser != null) {
+      // Atualizar último acesso no Firebase
+      await _authService.updateLastLogin(firebaseUser.uid);
+      
+      // Carregar dados atualizados do usuário
       UserModel? user = await _authService.getUserData(firebaseUser.uid);
       setState(() {
         _currentUser = user;

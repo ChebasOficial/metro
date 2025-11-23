@@ -39,7 +39,7 @@ class AuthService {
       );
       
       // Atualizar último login
-      await _updateLastLogin(result.user!.uid);
+      await updateLastLogin(result.user!.uid);
       
       return result;
     } catch (e) {
@@ -104,7 +104,7 @@ class AuthService {
   }
 
   // Atualizar último login
-  Future<void> _updateLastLogin(String userId) async {
+  Future<void> updateLastLogin(String userId) async {
     try {
       await _firestore.collection('users').doc(userId).update({
         'lastLoginAt': Timestamp.now(),
