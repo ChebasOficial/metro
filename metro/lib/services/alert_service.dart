@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/alert_model.dart';
+import 'demo_data_service.dart';
 
 class AlertService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -60,16 +61,24 @@ class AlertService {
     }
   }
 
-  // Obter alertas de um projeto
+  // Obter alertas de um projeto (Firebase + Demo)
   Stream<List<AlertModel>> getProjectAlerts(String projectId) {
     return _firestore
         .collection('alerts')
         .where('projectId', isEqualTo: projectId)
         .orderBy('detectedAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => AlertModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+          final firebaseAlerts = snapshot.docs
+              .map((doc) => AlertModel.fromFirestore(doc))
+              .toList();
+          // Adicionar alertas demo deste projeto
+          final demoAlerts = DemoDataService()
+              .demoAlerts
+              .where((alert) => alert.projectId == projectId)
+              .toList();
+          return [...demoAlerts, ...firebaseAlerts];
+        });
   }
 
   // Obter todos os alertas
@@ -78,9 +87,14 @@ class AlertService {
         .collection('alerts')
         .orderBy('detectedAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => AlertModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+          final firebaseAlerts = snapshot.docs
+              .map((doc) => AlertModel.fromFirestore(doc))
+              .toList();
+          // Adicionar alertas de demonstração
+          final demoAlerts = DemoDataService().demoAlerts;
+          return [...demoAlerts, ...firebaseAlerts];
+        });
   }
 
   // Obter alertas com filtros opcionais

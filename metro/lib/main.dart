@@ -14,6 +14,7 @@ import 'screens/profile/change_password_screen.dart';
 import 'screens/settings/settings_screen.dart';
 import 'screens/projects/projects_list_screen.dart';
 import 'config/app_config.dart';
+import 'services/demo_data_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,11 +66,15 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _initializeApp() async {
     try {
+      // Inicializar Firebase
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
+      
+      // Carregar dados de demonstração
+      await DemoDataService().loadDemoData();
 
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 1));
 
       if (!mounted) return;
 

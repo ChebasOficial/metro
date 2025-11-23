@@ -69,9 +69,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
           // Lista de Projetos
           Expanded(
             child: StreamBuilder<List<ProjectModel>>(
-              stream: _selectedFilter == 'todos'
-                  ? _projectService.getAllProjects()
-                  : _projectService.getProjectsByStatus(_selectedFilter),
+              stream: _projectService.getUserProjects(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -83,7 +81,12 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                   );
                 }
 
-                List<ProjectModel> projects = snapshot.data ?? [];
+                List<ProjectModel> allProjects = snapshot.data ?? [];
+                
+                // Aplicar filtro local
+                List<ProjectModel> projects = _selectedFilter == 'todos'
+                    ? allProjects
+                    : allProjects.where((p) => p.status == _selectedFilter).toList();
 
                 if (projects.isEmpty) {
                   return Center(

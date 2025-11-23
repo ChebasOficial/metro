@@ -1,0 +1,70 @@
+[
+  {
+    "id": "alert_001_desvio_fundacao",
+    "projectId": "proj_001_estacao_se",
+    "imageRecordId": "img_001_fundacao_se",
+    "analysisId": "analysis_001",
+    "type": "desvio_bim",
+    "severity": "alta",
+    "title": "Desvio na Fundação - Pilar P12",
+    "description": "Análise de IA detectou desvio de 15cm na posição do pilar P12 em relação ao modelo BIM. Requer verificação urgente do engenheiro responsável.",
+    "detectedAt": "2024-10-15T09:35:00.000Z",
+    "status": "aberto",
+    "assignedTo": null,
+    "resolvedAt": null,
+    "resolution": null,
+    "metadata": {
+      "desvioDetectado": "15cm horizontal",
+      "elementoBIM": "Pilar P12",
+      "confianca": "92%",
+      "recomendacao": "Verificar locação e corrigir antes de concretagem"
+    },
+    "createdAt": "2024-10-15T09:35:00.000Z",
+    "updatedAt": "2024-10-15T09:35:00.000Z"
+  },
+  {
+    "id": "alert_002_problema_estrutura",
+    "projectId": "proj_001_estacao_se",
+    "imageRecordId": "img_002_estrutura_se",
+    "analysisId": "analysis_002",
+    "type": "problema_qualidade",
+    "severity": "media",
+    "title": "Possível Segregação no Concreto",
+    "description": "IA identificou padrão visual sugestivo de segregação no concreto da viga V08. Recomenda-se inspeção visual e teste de resistência.",
+    "detectedAt": "2024-10-20T14:20:00.000Z",
+    "status": "em_analise",
+    "assignedTo": "Eng. Carlos Silva",
+    "resolvedAt": null,
+    "resolution": null,
+    "metadata": {
+      "elemento": "Viga V08",
+      "confianca": "78%",
+      "recomendacao": "Realizar ensaio de esclerometria"
+    },
+    "createdAt": "2024-10-20T14:20:00.000Z",
+    "updatedAt": "2024-10-21T10:00:00.000Z"
+  },
+  {
+    "id": "alert_003_seguranca",
+    "projectId": "proj_002_linha_6_laranja",
+    "imageRecordId": "img_003_alvenaria_linha6",
+    "analysisId": "analysis_003",
+    "type": "seguranca",
+    "severity": "alta",
+    "title": "Falta de EPI em Trabalhador",
+    "description": "Sistema detectou trabalhador sem capacete de segurança na área de alvenaria. Violação das normas NR-18.",
+    "detectedAt": "2024-10-22T10:50:00.000Z",
+    "status": "resolvido",
+    "assignedTo": "Eng. João Oliveira",
+    "resolvedAt": "2024-10-22T14:30:00.000Z",
+    "resolution": "Trabalhador identificado e orientado. Registro de advertência emitido. Reforçada fiscalização de EPIs na área.",
+    "metadata": {
+      "tipoViolacao": "Ausência de capacete",
+      "norma": "NR-18",
+      "confianca": "95%",
+      "acaoTomada": "Advertência e orientação"
+    },
+    "createdAt": "2024-10-22T10:50:00.000Z",
+    "updatedAt": "2024-10-22T14:30:00.000Z"
+  }
+]

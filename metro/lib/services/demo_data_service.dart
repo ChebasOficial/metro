@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../models/project_model.dart';
 import '../models/image_record_model.dart';
 import '../models/analysis_model.dart';
+import '../models/alert_model.dart';
 
 /// Serviço para carregar dados de demonstração dos assets
 class DemoDataService {
@@ -13,6 +14,7 @@ class DemoDataService {
   List<ProjectModel>? _demoProjects;
   List<ImageRecordModel>? _demoImages;
   List<AnalysisModel>? _demoAnalyses;
+  List<AlertModel>? _demoAlerts;
   
   bool _isLoaded = false;
 
@@ -96,13 +98,39 @@ class DemoDataService {
         );
       }).toList();
 
+      // Carregar alertas
+      final alertsJson = await rootBundle.loadString('assets/demo/data/alerts.json');
+      final alertsList = json.decode(alertsJson) as List;
+      _demoAlerts = alertsList.map((json) {
+        final data = json as Map<String, dynamic>;
+        return AlertModel(
+          id: data['id'] ?? '',
+          projectId: data['projectId'] ?? '',
+          imageRecordId: data['imageRecordId'],
+          analysisId: data['analysisId'],
+          type: data['type'] ?? 'outro',
+          severity: data['severity'] ?? 'baixa',
+          title: data['title'] ?? '',
+          description: data['description'] ?? '',
+          detectedAt: DateTime.parse(data['detectedAt']),
+          status: data['status'] ?? 'aberto',
+          assignedTo: data['assignedTo'],
+          resolvedAt: data['resolvedAt'] != null ? DateTime.parse(data['resolvedAt']) : null,
+          resolution: data['resolution'],
+          metadata: data['metadata'] != null ? Map<String, dynamic>.from(data['metadata']) : null,
+          createdAt: DateTime.parse(data['createdAt'] ?? DateTime.now().toIso8601String()),
+          updatedAt: DateTime.parse(data['updatedAt'] ?? DateTime.now().toIso8601String()),
+        );
+      }).toList();
+
       _isLoaded = true;
-      print('✅ Dados demo: ${_demoProjects!.length} projetos, ${_demoImages!.length} imagens');
+      print('✅ Dados demo: ${_demoProjects!.length} projetos, ${_demoImages!.length} imagens, ${_demoAlerts!.length} alertas');
     } catch (e) {
       print('❌ Erro ao carregar dados demo: $e');
       _demoProjects = [];
       _demoImages = [];
       _demoAnalyses = [];
+      _demoAlerts = [];
     }
   }
 
@@ -119,6 +147,7 @@ class DemoDataService {
   List<ProjectModel> get demoProjects => _demoProjects ?? [];
   List<ImageRecordModel> get demoImages => _demoImages ?? [];
   List<AnalysisModel> get demoAnalyses => _demoAnalyses ?? [];
+  List<AlertModel> get demoAlerts => _demoAlerts ?? [];
 
   List<ImageRecordModel> getImagesForProject(String projectId) {
     return _demoImages?.where((img) => img.projectId == projectId).toList() ?? [];

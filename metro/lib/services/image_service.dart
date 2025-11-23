@@ -190,15 +190,26 @@ class ImageService {
     }
   }
 
-  // Obter todas as imagens
-  Stream<List<ImageRecordModel>> getAllImages() {
-    return _firestore
+  // Obter todas as imagens (Firebase + Demo)
+  Stream<List<ImageRecordModel>> getAllImages() async* {
+    // Carregar dados de demonstração
+    final demoService = DemoDataService();
+    if (!demoService.isLoaded) {
+      await demoService.loadDemoData();
+    }
+    final demoImages = demoService.demoImages;
+    
+    // Combinar com imagens do Firebase
+    await for (final snapshot in _firestore
         .collection('image_records')
         .orderBy('captureDate', descending: true)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ImageRecordModel.fromFirestore(doc))
-            .toList());
+        .snapshots()) {
+      final firebaseImages = snapshot.docs
+          .map((doc) => ImageRecordModel.fromFirestore(doc))
+          .toList();
+      
+      yield [...demoImages, ...firebaseImages];
+    }
   }
 
   // Obter imagens por projeto (alias para compatibilidade)
