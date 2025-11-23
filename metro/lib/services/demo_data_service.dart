@@ -117,11 +117,14 @@ class DemoDataService {
           assignedTo: data['assignedTo'],
           resolvedAt: data['resolvedAt'] != null ? DateTime.parse(data['resolvedAt']) : null,
           resolution: data['resolution'],
+          affectedAreas: data['affectedAreas'] != null 
+              ? List<String>.from(data['affectedAreas']) 
+              : [],
           metadata: data['metadata'] != null ? Map<String, dynamic>.from(data['metadata']) : null,
           createdAt: DateTime.parse(data['createdAt'] ?? DateTime.now().toIso8601String()),
           updatedAt: DateTime.parse(data['updatedAt'] ?? DateTime.now().toIso8601String()),
         );
-      }).toList();
+      }).toList().cast<AlertModel>();
 
       _isLoaded = true;
       print('✅ Dados demo: ${_demoProjects!.length} projetos, ${_demoImages!.length} imagens, ${_demoAlerts!.length} alertas');

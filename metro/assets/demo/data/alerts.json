@@ -13,6 +13,7 @@
     "assignedTo": null,
     "resolvedAt": null,
     "resolution": null,
+    "affectedAreas": ["Fundação", "Estrutura"],
     "metadata": {
       "desvioDetectado": "15cm horizontal",
       "elementoBIM": "Pilar P12",
@@ -36,6 +37,7 @@
     "assignedTo": "Eng. Carlos Silva",
     "resolvedAt": null,
     "resolution": null,
+    "affectedAreas": ["Estrutura"],
     "metadata": {
       "elemento": "Viga V08",
       "confianca": "78%",
@@ -58,6 +60,7 @@
     "assignedTo": "Eng. João Oliveira",
     "resolvedAt": "2024-10-22T14:30:00.000Z",
     "resolution": "Trabalhador identificado e orientado. Registro de advertência emitido. Reforçada fiscalização de EPIs na área.",
+    "affectedAreas": ["Alvenaria", "Segurança"],
     "metadata": {
       "tipoViolacao": "Ausência de capacete",
       "norma": "NR-18",
