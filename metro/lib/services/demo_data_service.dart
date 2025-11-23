@@ -64,11 +64,14 @@ class DemoDataService {
           imageUrl: 'data:image/jpeg;base64,$base64Image',
           thumbnailUrl: 'data:image/jpeg;base64,$base64Image',
           captureDate: DateTime.parse(imageData['captureDate']),
-          capturedBy: imageData['capturedBy'] ?? 'Demo',
+          capturedBy: imageData['capturedBy'] ?? 'demo_user',
+          capturedByName: imageData['capturedByName'] ?? 'Demo',
           latitude: imageData['latitude']?.toDouble(),
           longitude: imageData['longitude']?.toDouble(),
           analysisStatus: imageData['analysisStatus'] ?? 'completed',
           metadata: Map<String, dynamic>.from(imageData['metadata'] ?? {}),
+          createdAt: DateTime.parse(imageData['createdAt'] ?? DateTime.now().toIso8601String()),
+          updatedAt: DateTime.parse(imageData['updatedAt'] ?? DateTime.now().toIso8601String()),
         ));
       }
 
@@ -83,12 +86,13 @@ class DemoDataService {
           projectId: data['projectId'] ?? '',
           analysisDate: DateTime.parse(data['analysisDate']),
           status: data['status'] ?? 'completed',
-          geminiResponse: data['geminiResponse'] ?? '',
-          detectedElements: List<String>.from(data['detectedElements'] ?? []),
+          geminiResponse: Map<String, dynamic>.from(data['geminiResponse'] ?? {}),
+          detectedElements: [], // Simplificado
           identifiedIssues: List<String>.from(data['identifiedIssues'] ?? []),
           progressEstimate: data['progressEstimate']?.toDouble() ?? 0.0,
-          bimComparison: data['bimComparison'],
-          metadata: Map<String, dynamic>.from(data['metadata'] ?? {}),
+          comparisonWithBIM: data['comparisonWithBIM'],
+          deviations: data['deviations'] != null ? Map<String, dynamic>.from(data['deviations']) : null,
+          createdAt: DateTime.parse(data['createdAt'] ?? DateTime.now().toIso8601String()),
         );
       }).toList();
 
