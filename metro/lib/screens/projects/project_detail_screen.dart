@@ -1,19 +1,31 @@
 import 'package:flutter/material.dart';
 import '../../models/project_model.dart';
-import '../../config/app_config.dart';
 import '../../services/project_service.dart';
+import '../../config/app_config.dart';
 
-class ProjectDetailScreen extends StatelessWidget {
+class ProjectDetailScreen extends StatefulWidget {
   final ProjectModel project;
 
   const ProjectDetailScreen({super.key, required this.project});
 
-  Future<void> _completeProject(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
+  @override
+  State<ProjectDetailScreen> createState() => _ProjectDetailScreenState();
+}
+
+class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
+  final _projectService = ProjectService();
+  bool _isProcessing = false;
+
+  Future<void> _updateStatus(String newStatus) async {
+    final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Concluir Projeto'),
-        content: const Text('Deseja marcar este projeto como concluído?'),
+        title: Text(newStatus == 'pausado' ? 'Pausar Projeto' : 'Concluir Projeto'),
+        content: Text(
+          newStatus == 'pausado'
+              ? 'Deseja pausar este projeto?'
+              : 'Deseja marcar este projeto como concluído?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -22,48 +34,57 @@ class ProjectDetailScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppConfig.successColor,
+              backgroundColor: newStatus == 'pausado' ? Colors.orange : Colors.green,
             ),
-            child: const Text('Concluir'),
+            child: const Text('Confirmar'),
           ),
         ],
       ),
     );
 
-    if (confirmed == true && context.mounted) {
+    if (confirm == true && mounted) {
       try {
-        final projectService = ProjectService();
-        await projectService.updateProjectStatus(project.id, 'concluido');
-        
-        if (context.mounted) {
+        setState(() => _isProcessing = true);
+
+        await _projectService.updateProjectStatus(widget.project.id, newStatus);
+
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Projeto concluído com sucesso!'),
-              backgroundColor: AppConfig.successColor,
+            SnackBar(
+              content: Text(
+                newStatus == 'pausado'
+                    ? 'Projeto pausado com sucesso!'
+                    : 'Projeto concluído com sucesso!',
+              ),
+              backgroundColor: Colors.green,
             ),
           );
           Navigator.pop(context);
         }
       } catch (e) {
-        if (context.mounted) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Erro ao concluir projeto: $e'),
-              backgroundColor: AppConfig.errorColor,
+              content: Text('Erro ao atualizar projeto: $e'),
+              backgroundColor: Colors.red,
             ),
           );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isProcessing = false);
         }
       }
     }
   }
 
-  Future<void> _deleteProject(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
+  Future<void> _deleteProject() async {
+    final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Excluir Projeto'),
         content: const Text(
-          'Tem certeza que deseja excluir este projeto? Esta ação não pode ser desfeita.',
+          'Tem certeza que deseja excluir este projeto? Esta ação não pode ser desfeita e todas as imagens e análises associadas serão perdidas.',
         ),
         actions: [
           TextButton(
@@ -81,28 +102,33 @@ class ProjectDetailScreen extends StatelessWidget {
       ),
     );
 
-    if (confirmed == true && context.mounted) {
+    if (confirm == true && mounted) {
       try {
-        final projectService = ProjectService();
-        await projectService.deleteProject(project.id);
-        
-        if (context.mounted) {
+        setState(() => _isProcessing = true);
+
+        await _projectService.deleteProject(widget.project.id);
+
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Projeto excluído com sucesso!'),
-              backgroundColor: AppConfig.successColor,
+              backgroundColor: Colors.green,
             ),
           );
           Navigator.pop(context);
         }
       } catch (e) {
-        if (context.mounted) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Erro ao excluir projeto: $e'),
-              backgroundColor: AppConfig.errorColor,
+              backgroundColor: Colors.red,
             ),
           );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isProcessing = false);
         }
       }
     }
@@ -121,38 +147,41 @@ class ProjectDetailScreen extends StatelessWidget {
     }
   }
 
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'em_andamento':
-        return Colors.blue;
-      case 'pausado':
-        return Colors.orange;
-      case 'concluido':
-        return Colors.green;
-      default:
-        return Colors.grey;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(project.name),
-        backgroundColor: AppConfig.primaryColor,
+        title: Text(widget.project.name),
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {
-              if (value == 'complete') {
-                _completeProject(context);
-              } else if (value == 'delete') {
-                _deleteProject(context);
+              switch (value) {
+                case 'pausar':
+                  _updateStatus('pausado');
+                  break;
+                case 'concluir':
+                  _updateStatus('concluido');
+                  break;
+                case 'deletar':
+                  _deleteProject();
+                  break;
               }
             },
             itemBuilder: (context) => [
-              if (project.status != 'concluido')
+              if (widget.project.status == 'em_andamento')
                 const PopupMenuItem(
-                  value: 'complete',
+                  value: 'pausar',
+                  child: Row(
+                    children: [
+                      Icon(Icons.pause_circle, color: Colors.orange),
+                      SizedBox(width: 8),
+                      Text('Pausar Projeto'),
+                    ],
+                  ),
+                ),
+              if (widget.project.status != 'concluido')
+                const PopupMenuItem(
+                  value: 'concluir',
                   child: Row(
                     children: [
                       Icon(Icons.check_circle, color: Colors.green),
@@ -162,7 +191,7 @@ class ProjectDetailScreen extends StatelessWidget {
                   ),
                 ),
               const PopupMenuItem(
-                value: 'delete',
+                value: 'deletar',
                 child: Row(
                   children: [
                     Icon(Icons.delete, color: Colors.red),
@@ -197,66 +226,18 @@ class ProjectDetailScreen extends StatelessWidget {
                     _InfoRow(
                       icon: Icons.description,
                       label: 'Descrição',
-                      value: project.description,
+                      value: widget.project.description,
                     ),
                     _InfoRow(
                       icon: Icons.location_on,
                       label: 'Localização',
-                      value: project.location,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: AppConfig.paddingSmall),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(Icons.info, size: 20, color: AppConfig.primaryColor),
-                          const SizedBox(width: AppConfig.paddingSmall),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Status',
-                                  style: TextStyle(
-                                    fontSize: AppConfig.textSizeSmall,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: _getStatusColor(project.status).withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    _getStatusLabel(project.status),
-                                    style: TextStyle(
-                                      fontSize: AppConfig.textSizeNormal,
-                                      color: _getStatusColor(project.status),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                      value: widget.project.location,
                     ),
                     _InfoRow(
-                      icon: Icons.calendar_today,
-                      label: 'Data de Início',
-                      value: '${project.startDate.day}/${project.startDate.month}/${project.startDate.year}',
+                      icon: Icons.info,
+                      label: 'Status',
+                      value: _getStatusLabel(widget.project.status),
                     ),
-                    if (project.expectedEndDate != null)
-                      _InfoRow(
-                        icon: Icons.event,
-                        label: 'Previsão de Término',
-                        value: '${project.expectedEndDate!.day}/${project.expectedEndDate!.month}/${project.expectedEndDate!.year}',
-                      ),
                   ],
                 ),
               ),
@@ -404,7 +385,7 @@ class _ActionCard extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontSize: AppConfig.textSizeSmall,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.bold,
                   color: color,
                 ),
               ),
