@@ -142,15 +142,39 @@ class ProjectService {
       return;
     }
     
-    // Combinar com projetos do Firebase
-    await for (final snapshot in _firestore
+    // Buscar projetos onde é criador OU membro
+    // Como Firestore não suporta OR em queries, fazemos 2 queries separadas
+    await for (final _ in _firestore
         .collection('projects')
         .where('userId', isEqualTo: user.uid)
-        .orderBy('createdAt', descending: true)
         .snapshots()) {
-      final firebaseProjects = snapshot.docs
-          .map((doc) => ProjectModel.fromFirestore(doc))
-          .toList();
+      
+      // Query 1: Projetos onde é criador
+      final ownerSnapshot = await _firestore
+          .collection('projects')
+          .where('userId', isEqualTo: user.uid)
+          .get();
+      
+      // Query 2: Projetos onde é membro
+      final memberSnapshot = await _firestore
+          .collection('projects')
+          .where('members', arrayContains: user.uid)
+          .get();
+      
+      // Combinar e remover duplicatas
+      final projectsMap = <String, ProjectModel>{};
+      
+      for (var doc in ownerSnapshot.docs) {
+        projectsMap[doc.id] = ProjectModel.fromFirestore(doc);
+      }
+      
+      for (var doc in memberSnapshot.docs) {
+        projectsMap[doc.id] = ProjectModel.fromFirestore(doc);
+      }
+      
+      // Ordenar por data de criação
+      final firebaseProjects = projectsMap.values.toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
       
       yield [...demoProjects, ...firebaseProjects];
     }

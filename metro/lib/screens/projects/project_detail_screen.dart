@@ -433,6 +433,16 @@ class _MembersDialogState extends State<_MembersDialog> {
 
   Future<void> _loadMembers() async {
     setState(() => _isLoading = true);
+    
+    // Projetos demo não têm membros
+    if (widget.projectId.startsWith('proj_')) {
+      setState(() {
+        _members = [];
+        _isLoading = false;
+      });
+      return;
+    }
+    
     final members = await widget.projectService.getProjectMembers(widget.projectId);
     setState(() {
       _members = members;
@@ -441,6 +451,12 @@ class _MembersDialogState extends State<_MembersDialog> {
   }
 
   Future<void> _addMember() async {
+    // Verificar se é projeto demo
+    if (widget.projectId.startsWith('proj_')) {
+      _showMessage('Este é um projeto de demonstração. Crie um novo projeto para adicionar membros.');
+      return;
+    }
+
     final email = _emailController.text.trim();
     if (email.isEmpty) {
       _showMessage('Digite um email válido');
@@ -600,13 +616,15 @@ class _MembersDialogState extends State<_MembersDialog> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _members.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Padding(
-                            padding: EdgeInsets.all(AppConfig.paddingLarge),
+                            padding: const EdgeInsets.all(AppConfig.paddingLarge),
                             child: Text(
-                              'Nenhum membro adicionado.\nAdicione membros pelo email para compartilhar o projeto.',
+                              widget.projectId.startsWith('proj_')
+                                  ? 'Este é um projeto de demonstração.\n\nCrie um novo projeto para adicionar membros e colaboradores.'
+                                  : 'Nenhum membro adicionado.\n\nAdicione membros pelo email para compartilhar o projeto.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.grey),
+                              style: const TextStyle(color: Colors.grey),
                             ),
                           ),
                         )
