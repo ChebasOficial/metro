@@ -13,6 +13,7 @@ class ProjectModel {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String userId; // ID do usuário que criou o projeto
+  final List<String> members; // IDs dos usuários membros do projeto
 
   ProjectModel({
     required this.id,
@@ -27,6 +28,7 @@ class ProjectModel {
     required this.createdAt,
     required this.updatedAt,
     required this.userId,
+    this.members = const [],
   });
 
   // Converter de Firestore para Model
@@ -47,6 +49,7 @@ class ProjectModel {
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       updatedAt: (data['updatedAt'] as Timestamp).toDate(),
       userId: data['userId'] ?? '',
+      members: List<String>.from(data['members'] ?? []),
     );
   }
 
@@ -66,6 +69,7 @@ class ProjectModel {
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
       'userId': userId,
+      'members': members,
     };
   }
 
@@ -83,6 +87,7 @@ class ProjectModel {
     DateTime? createdAt,
     DateTime? updatedAt,
     String? userId,
+    List<String>? members,
   }) {
     return ProjectModel(
       id: id ?? this.id,
@@ -97,6 +102,7 @@ class ProjectModel {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       userId: userId ?? this.userId,
+      members: members ?? this.members,
     );
   }
 }

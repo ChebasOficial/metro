@@ -27,6 +27,25 @@ class AuthService {
     }
   }
 
+  // Buscar usuário por email
+  Future<UserModel?> getUserByEmail(String email) async {
+    try {
+      QuerySnapshot query = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: email.trim().toLowerCase())
+          .limit(1)
+          .get();
+      
+      if (query.docs.isNotEmpty) {
+        return UserModel.fromFirestore(query.docs.first);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Erro ao buscar usuário por email: $e');
+      return null;
+    }
+  }
+
   // Login com email e senha
   Future<UserCredential?> signInWithEmailAndPassword(
     String email,

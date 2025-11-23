@@ -41,6 +41,66 @@ class ProjectService {
     }
   }
 
+  // Adicionar membro ao projeto
+  Future<void> addMember(String projectId, String userId) async {
+    try {
+      await _firestore.collection('projects').doc(projectId).update({
+        'members': FieldValue.arrayUnion([userId]),
+        'updatedAt': Timestamp.now(),
+      });
+      debugPrint('Membro $userId adicionado ao projeto $projectId');
+    } catch (e) {
+      debugPrint('Erro ao adicionar membro: $e');
+      rethrow;
+    }
+  }
+
+  // Remover membro do projeto
+  Future<void> removeMember(String projectId, String userId) async {
+    try {
+      await _firestore.collection('projects').doc(projectId).update({
+        'members': FieldValue.arrayRemove([userId]),
+        'updatedAt': Timestamp.now(),
+      });
+      debugPrint('Membro $userId removido do projeto $projectId');
+    } catch (e) {
+      debugPrint('Erro ao remover membro: $e');
+      rethrow;
+    }
+  }
+
+  // Obter membros do projeto (retorna lista de UserModels)
+  Future<List<Map<String, String>>> getProjectMembers(String projectId) async {
+    try {
+      // Buscar projeto
+      DocumentSnapshot projectDoc = await _firestore.collection('projects').doc(projectId).get();
+      if (!projectDoc.exists) return [];
+      
+      Map<String, dynamic> projectData = projectDoc.data() as Map<String, dynamic>;
+      List<String> memberIds = List<String>.from(projectData['members'] ?? []);
+      
+      // Buscar dados dos membros
+      List<Map<String, String>> members = [];
+      for (String userId in memberIds) {
+        DocumentSnapshot userDoc = await _firestore.collection('users').doc(userId).get();
+        if (userDoc.exists) {
+          Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+          members.add({
+            'id': userId,
+            'name': userData['name'] ?? 'Usuário',
+            'email': userData['email'] ?? '',
+            'role': userData['role'] ?? 'visualizador',
+          });
+        }
+      }
+      
+      return members;
+    } catch (e) {
+      debugPrint('Erro ao buscar membros do projeto: $e');
+      return [];
+    }
+  }
+
   // Obter projeto por ID
   Future<ProjectModel?> getProject(String projectId) async {
     try {

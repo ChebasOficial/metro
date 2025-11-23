@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/project_model.dart';
 import '../../services/project_service.dart';
+import '../../services/auth_service.dart';
 import '../../config/app_config.dart';
 import '../gallery/gallery_screen.dart';
 import '../alerts/alerts_screen.dart';
@@ -81,6 +82,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     }
   }
 
+  Future<void> _showMembersDialog() async {
+    showDialog(
+      context: context,
+      builder: (context) => _MembersDialog(
+        projectId: widget.project.id,
+        projectService: _projectService,
+      ),
+    );
+  }
+
   Future<void> _deleteProject() async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -159,6 +170,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           PopupMenuButton<String>(
             onSelected: (value) {
               switch (value) {
+                case 'membros':
+                  _showMembersDialog();
+                  break;
                 case 'pausar':
                   _updateStatus('pausado');
                   break;
@@ -171,6 +185,17 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               }
             },
             itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'membros',
+                child: Row(
+                  children: [
+                    Icon(Icons.people, color: AppConfig.primaryColor),
+                    SizedBox(width: 8),
+                    Text('Gerenciar Membros'),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
               if (widget.project.status == 'em_andamento')
                 const PopupMenuItem(
                   value: 'pausar',
@@ -377,6 +402,249 @@ class _InfoRow extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _MembersDialog extends StatefulWidget {
+  final String projectId;
+  final ProjectService projectService;
+
+  const _MembersDialog({
+    required this.projectId,
+    required this.projectService,
+  });
+
+  @override
+  State<_MembersDialog> createState() => _MembersDialogState();
+}
+
+class _MembersDialogState extends State<_MembersDialog> {
+  final _authService = AuthService();
+  final _emailController = TextEditingController();
+  List<Map<String, String>> _members = [];
+  bool _isLoading = true;
+  bool _isAdding = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMembers();
+  }
+
+  Future<void> _loadMembers() async {
+    setState(() => _isLoading = true);
+    final members = await widget.projectService.getProjectMembers(widget.projectId);
+    setState(() {
+      _members = members;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _addMember() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      _showMessage('Digite um email válido');
+      return;
+    }
+
+    setState(() => _isAdding = true);
+
+    try {
+      // Buscar usuário por email
+      final user = await _authService.getUserByEmail(email);
+      
+      if (user == null) {
+        _showMessage('Usuário não encontrado');
+        setState(() => _isAdding = false);
+        return;
+      }
+
+      // Verificar se já é membro
+      if (_members.any((m) => m['id'] == user.id)) {
+        _showMessage('Este usuário já é membro do projeto');
+        setState(() => _isAdding = false);
+        return;
+      }
+
+      // Adicionar ao projeto
+      await widget.projectService.addMember(widget.projectId, user.id);
+      
+      _emailController.clear();
+      _showMessage('${user.name} adicionado com sucesso!');
+      await _loadMembers();
+    } catch (e) {
+      _showMessage('Erro ao adicionar membro: $e');
+    }
+
+    setState(() => _isAdding = false);
+  }
+
+  Future<void> _removeMember(String userId, String userName) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remover Membro'),
+        content: Text('Deseja remover $userName do projeto?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Remover'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await widget.projectService.removeMember(widget.projectId, userId);
+        _showMessage('$userName removido com sucesso');
+        await _loadMembers();
+      } catch (e) {
+        _showMessage('Erro ao remover membro: $e');
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        constraints: const BoxConstraints(maxHeight: 600),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Cabeçalho
+            Container(
+              padding: const EdgeInsets.all(AppConfig.paddingNormal),
+              decoration: BoxDecoration(
+                color: AppConfig.primaryColor,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(AppConfig.radiusNormal),
+                  topRight: Radius.circular(AppConfig.radiusNormal),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.people, color: Colors.white),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Membros do Projeto',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+
+            // Formulário para adicionar membro
+            Padding(
+              padding: const EdgeInsets.all(AppConfig.paddingNormal),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _emailController,
+                      decoration: const InputDecoration(
+                        labelText: 'Email do usuário',
+                        hintText: 'usuario@exemplo.com',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.email),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      enabled: !_isAdding,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _isAdding ? null : _addMember,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.all(16),
+                    ),
+                    child: _isAdding
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.add),
+                  ),
+                ],
+              ),
+            ),
+
+            const Divider(height: 1),
+
+            // Lista de membros
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _members.isEmpty
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(AppConfig.paddingLarge),
+                            child: Text(
+                              'Nenhum membro adicionado.\nAdicione membros pelo email para compartilhar o projeto.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: _members.length,
+                          itemBuilder: (context, index) {
+                            final member = _members[index];
+                            return ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: AppConfig.primaryColor,
+                                child: Text(
+                                  member['name']!.substring(0, 1).toUpperCase(),
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                              title: Text(member['name']!),
+                              subtitle: Text(member['email']!),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.remove_circle, color: Colors.red),
+                                onPressed: () => _removeMember(
+                                  member['id']!,
+                                  member['name']!,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
   }
 }
 
