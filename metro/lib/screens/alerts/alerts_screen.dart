@@ -55,9 +55,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
             child: StreamBuilder<List<AlertModel>>(
               stream: widget.projectId != null
                   ? _alertService.getProjectAlerts(widget.projectId!)
-                  : (_selectedFilter == 'all'
-                      ? _alertService.getAllAlerts()
-                      : _alertService.getAlerts(severity: _selectedFilter)),
+                  : _alertService.getAllAlerts(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -69,7 +67,25 @@ class _AlertsScreenState extends State<AlertsScreen> {
                   );
                 }
 
-                final alerts = snapshot.data ?? [];
+                // Aplicar filtro de severidade em memória
+                var alerts = snapshot.data ?? [];
+                if (_selectedFilter != 'all') {
+                  alerts = alerts.where((alert) {
+                    final severity = alert.severity.toLowerCase();
+                    switch (_selectedFilter) {
+                      case 'critical':
+                        return severity == 'crítica' || severity == 'critical';
+                      case 'high':
+                        return severity == 'alta' || severity == 'high';
+                      case 'medium':
+                        return severity == 'média' || severity == 'media' || severity == 'medium';
+                      case 'low':
+                        return severity == 'baixa' || severity == 'low';
+                      default:
+                        return true;
+                    }
+                  }).toList();
+                }
 
                 if (alerts.isEmpty) {
                   return Center(
