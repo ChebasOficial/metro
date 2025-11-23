@@ -3,6 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/auth_service.dart';
 import '../../services/project_service.dart';
+import '../../services/image_service.dart';
+import '../../services/alert_service.dart';
+import '../../services/gemini_service.dart';
 import '../../models/user_model.dart';
 import '../../models/project_model.dart';
 import '../../config/app_config.dart';
@@ -149,8 +152,12 @@ class _DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<_DashboardPage> {
   final _projectService = ProjectService();
+  final _imageService = ImageService();
+  final _alertService = AlertService();
+  final _geminiService = GeminiService();
+  
   int _activeProjects = 0;
-  int _todayImages = 0;
+  int _totalImages = 0;
   int _openAlerts = 0;
   int _totalAnalyses = 0;
   bool _isLoading = true;
@@ -172,53 +179,32 @@ class _DashboardPageState extends State<_DashboardPage> {
     try {
       debugPrint('=== Carregando estatísticas ===');
       
-      // Buscar projetos ativos
+      // Buscar projetos ativos (já inclui dados demo)
       final projects = await _projectService.getUserProjects().first;
       debugPrint('Total de projetos: ${projects.length}');
       final active = projects.where((p) => p.status == 'em_andamento').length;
       debugPrint('Projetos ativos: $active');
       
-      // Buscar TODAS as imagens (sem filtro de data)
-      final allImagesSnapshot = await FirebaseFirestore.instance
-          .collection('image_records')
-          .get();
-      debugPrint('Total de imagens: ${allImagesSnapshot.docs.length}');
+      // Buscar TODAS as imagens (demo + Firebase)
+      final allImages = await _imageService.getAllImages().first;
+      debugPrint('Total de imagens: ${allImages.length}');
       
-      // Buscar imagens de hoje
-      final now = DateTime.now();
-      final startOfDay = DateTime(now.year, now.month, now.day);
-      debugPrint('Início do dia: $startOfDay');
+      // Buscar alertas abertos (demo + Firebase)
+      final allAlerts = await _alertService.getAllAlerts().first;
+      final openAlerts = allAlerts.where((alert) => 
+        alert.status == 'aberto' || alert.status == 'em_analise'
+      ).length;
+      debugPrint('Alertas abertos: $openAlerts');
       
-      int todayCount = 0;
-      for (var doc in allImagesSnapshot.docs) {
-        final data = doc.data();
-        if (data['captureDate'] != null) {
-          final captureDate = (data['captureDate'] as Timestamp).toDate();
-          if (captureDate.isAfter(startOfDay)) {
-            todayCount++;
-          }
-        }
-      }
-      debugPrint('Imagens hoje: $todayCount');
-      
-      // Buscar alertas abertos
-      final alertsSnapshot = await FirebaseFirestore.instance
-          .collection('alerts')
-          .where('status', isEqualTo: 'open')
-          .get();
-      debugPrint('Alertas abertos: ${alertsSnapshot.docs.length}');
-      
-      // Buscar total de análises
-      final analysesSnapshot = await FirebaseFirestore.instance
-          .collection('analyses')
-          .get();
-      debugPrint('Total de análises: ${analysesSnapshot.docs.length}');
+      // Buscar total de análises (demo + Firebase)
+      final allAnalyses = await _geminiService.getAllAnalyses().first;
+      debugPrint('Total de análises: ${allAnalyses.length}');
       
       setState(() {
         _activeProjects = active;
-        _todayImages = todayCount;
-        _openAlerts = alertsSnapshot.docs.length;
-        _totalAnalyses = analysesSnapshot.docs.length;
+        _totalImages = allImages.length;
+        _openAlerts = openAlerts;
+        _totalAnalyses = allAnalyses.length;
         _isLoading = false;
       });
       
@@ -302,8 +288,8 @@ class _DashboardPageState extends State<_DashboardPage> {
               Expanded(
                 child: _StatCard(
                   icon: Icons.camera_alt,
-                  title: 'Imagens Hoje',
-                  value: _isLoading ? '...' : '$_todayImages',
+                  title: 'Imagens',
+                  value: _isLoading ? '...' : '$_totalImages',
                   color: AppConfig.secondaryColor,
                 ),
               ),
