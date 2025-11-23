@@ -6,7 +6,10 @@ import '../../models/image_record_model.dart';
 import 'dart:convert';
 
 class GalleryScreen extends StatefulWidget {
-  const GalleryScreen({super.key});
+  final String? projectId;
+  final String? projectName;
+  
+  const GalleryScreen({super.key, this.projectId, this.projectName});
 
   @override
   State<GalleryScreen> createState() => _GalleryScreenState();
@@ -19,12 +22,16 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Galeria'),
+        title: Text(widget.projectName != null 
+            ? 'Galeria - ${widget.projectName}' 
+            : 'Galeria'),
         backgroundColor: AppConfig.primaryColor,
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<List<ImageRecordModel>>(
-        stream: _imageService.getAllImages(),
+        stream: widget.projectId != null
+            ? _imageService.getProjectImages(widget.projectId!)
+            : _imageService.getAllImages(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

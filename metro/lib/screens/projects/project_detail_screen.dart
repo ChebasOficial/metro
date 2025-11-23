@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../models/project_model.dart';
 import '../../services/project_service.dart';
 import '../../config/app_config.dart';
+import '../gallery/gallery_screen.dart';
+import '../alerts/alerts_screen.dart';
+import '../analyses/analyses_screen.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
   final ProjectModel project;
@@ -271,7 +274,14 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     label: 'Galeria',
                     color: AppConfig.secondaryColor,
                     onTap: () {
-                      Navigator.of(context).pushNamed('/gallery');
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => GalleryScreen(
+                            projectId: widget.project.id,
+                            projectName: widget.project.name,
+                          ),
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -286,7 +296,14 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     label: 'Alertas',
                     color: AppConfig.warningColor,
                     onTap: () {
-                      Navigator.of(context).pushNamed('/alerts');
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => AlertsScreen(
+                            projectId: widget.project.id,
+                            projectName: widget.project.name,
+                          ),
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -297,7 +314,14 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     label: 'Análises',
                     color: AppConfig.accentColor,
                     onTap: () {
-                      Navigator.of(context).pushNamed('/analyses');
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => AnalysesScreen(
+                            projectId: widget.project.id,
+                            projectName: widget.project.name,
+                          ),
+                        ),
+                      );
                     },
                   ),
                 ),

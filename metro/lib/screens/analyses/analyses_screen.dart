@@ -4,7 +4,10 @@ import '../../services/gemini_service.dart';
 import '../../models/analysis_model.dart';
 
 class AnalysesScreen extends StatefulWidget {
-  const AnalysesScreen({super.key});
+  final String? projectId;
+  final String? projectName;
+  
+  const AnalysesScreen({super.key, this.projectId, this.projectName});
 
   @override
   State<AnalysesScreen> createState() => _AnalysesScreenState();
@@ -17,12 +20,16 @@ class _AnalysesScreenState extends State<AnalysesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Análises de IA'),
+        title: Text(widget.projectName != null 
+            ? 'Análises - ${widget.projectName}' 
+            : 'Análises de IA'),
         backgroundColor: AppConfig.primaryColor,
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<List<AnalysisModel>>(
-        stream: _geminiService.getAllAnalyses(),
+        stream: widget.projectId != null
+            ? _geminiService.getProjectAnalyses(widget.projectId!)
+            : _geminiService.getAllAnalyses(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

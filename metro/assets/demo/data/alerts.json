@@ -69,5 +69,78 @@
     },
     "createdAt": "2024-10-22T10:50:00.000Z",
     "updatedAt": "2024-10-22T14:30:00.000Z"
+  },
+  {
+    "id": "alert_004_drenagem_jabaquara",
+    "projectId": "proj_003_patio_jabaquara",
+    "imageRecordId": "img_006_drenagem_jabaquara",
+    "analysisId": "analysis_006",
+    "type": "desvio_tecnico",
+    "severity": "media",
+    "title": "Declividade Insuficiente na Tubulação",
+    "description": "Análise detectou que a tubulação T-12 está com declividade 0.3% abaixo do especificado em projeto. Pode comprometer eficiência da drenagem.",
+    "detectedAt": "2024-09-25T11:45:00.000Z",
+    "status": "em_analise",
+    "assignedTo": "Eng. Maria Santos",
+    "resolvedAt": null,
+    "resolution": null,
+    "affectedAreas": ["Drenagem", "Infraestrutura"],
+    "metadata": {
+      "elemento": "Tubulação T-12",
+      "declividadeEspecificada": "2.0%",
+      "declividadeDetectada": "1.7%",
+      "confianca": "86%",
+      "recomendacao": "Ajustar declividade ou verificar se está dentro da tolerância aceitável"
+    },
+    "createdAt": "2024-09-25T11:45:00.000Z",
+    "updatedAt": "2024-09-26T09:00:00.000Z"
+  },
+  {
+    "id": "alert_005_acumulo_agua_jabaquara",
+    "projectId": "proj_003_patio_jabaquara",
+    "imageRecordId": "img_005_terraplanagem_jabaquara",
+    "analysisId": "analysis_005",
+    "type": "problema_execucao",
+    "severity": "baixa",
+    "title": "Acúmulo de Água na Área Norte",
+    "description": "Identificado pequeno acúmulo de água na área norte do terreno. Necessário implementar drenagem provisória.",
+    "detectedAt": "2024-09-10T08:15:00.000Z",
+    "status": "resolvido",
+    "assignedTo": "Eng. Pedro Costa",
+    "resolvedAt": "2024-09-12T16:00:00.000Z",
+    "resolution": "Instalada drenagem provisória com bombeamento. Área está seca e pronta para continuidade dos trabalhos.",
+    "affectedAreas": ["Terraplanagem"],
+    "metadata": {
+      "area": "Setor Norte - Quadrante A3",
+      "volumeEstimado": "~500 litros",
+      "confianca": "90%",
+      "acaoTomada": "Drenagem provisória instalada"
+    },
+    "createdAt": "2024-09-10T08:15:00.000Z",
+    "updatedAt": "2024-09-12T16:00:00.000Z"
+  },
+  {
+    "id": "alert_006_vistoria_vilasonia",
+    "projectId": "proj_004_estacao_vila_sonia",
+    "imageRecordId": "img_007_acabamento_vilasonia",
+    "analysisId": "analysis_007",
+    "type": "administrativo",
+    "severity": "baixa",
+    "title": "Vistoria Final Programada",
+    "description": "Obra em fase final. Programar vistoria técnica para liberação e entrega.",
+    "detectedAt": "2024-08-15T15:10:00.000Z",
+    "status": "resolvido",
+    "assignedTo": "Eng. Ana Paula",
+    "resolvedAt": "2024-08-18T14:00:00.000Z",
+    "resolution": "Vistoria realizada em 18/08/2024. Obra aprovada sem pendências. Documentação as-built entregue.",
+    "affectedAreas": ["Geral"],
+    "metadata": {
+      "tipoVistoria": "Final",
+      "dataVistoria": "2024-08-18",
+      "resultado": "Aprovado",
+      "pendencias": "Nenhuma"
+    },
+    "createdAt": "2024-08-15T15:10:00.000Z",
+    "updatedAt": "2024-08-18T14:00:00.000Z"
   }
 ]

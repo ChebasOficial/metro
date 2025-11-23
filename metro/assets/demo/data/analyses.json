@@ -156,3 +156,154 @@
     "createdAt": "2024-10-25T16:05:00.000Z"
   }
 ]
+,
+  {
+    "id": "analysis_005",
+    "imageRecordId": "img_005_terraplanagem_jabaquara",
+    "projectId": "proj_003_patio_jabaquara",
+    "analysisDate": "2024-09-10T08:15:00.000Z",
+    "status": "completed",
+    "geminiResponse": {
+      "text": "Análise da imagem de obra detectou:\n\n1. **Estrutura Identificada**: Terraplanagem e preparação de terreno para pátio de manobras.\n\n2. **Elementos Detectados**:\n   - Equipamentos de terraplanagem (escavadeiras, tratores)\n   - Terreno em processo de nivelamento\n   - Marcações topográficas visíveis\n   - Área ampla preparada\n\n3. **Fase da Obra**: Terraplanagem inicial\n\n4. **Condições Observadas**:\n   - Equipamentos adequados para o porte da obra\n   - Boa visibilidade e condições climáticas\n   - Área demarcada corretamente\n\n5. **Estimativa de Progresso**: Aproximadamente 25-30% da terraplanagem concluída\n\n6. **Recomendações**:\n   - Continuar monitoramento topográfico\n   - Verificar compactação do solo\n   - Atenção ao sistema de drenagem provisório",
+      "confidence": 0.90
+    },
+    "detectedElements": [
+      {
+        "type": "equipamento",
+        "description": "Escavadeiras e tratores",
+        "confidence": 0.94,
+        "boundingBox": null
+      },
+      {
+        "type": "terreno",
+        "description": "Área em nivelamento",
+        "confidence": 0.88,
+        "boundingBox": null
+      }
+    ],
+    "identifiedIssues": [
+      "Verificar compactação do solo",
+      "Monitorar drenagem provisória"
+    ],
+    "progressEstimate": 27.5,
+    "comparisonWithBIM": "Terraplanagem conforme projeto. Cotas dentro do especificado.",
+    "deviations": {
+      "critical": [],
+      "moderate": [],
+      "minor": ["Pequeno acúmulo de água na área norte (drenagem provisória necessária)"]
+    },
+    "createdAt": "2024-09-10T08:15:00.000Z"
+  },
+  {
+    "id": "analysis_006",
+    "imageRecordId": "img_006_drenagem_jabaquara",
+    "projectId": "proj_003_patio_jabaquara",
+    "analysisDate": "2024-09-25T11:45:00.000Z",
+    "status": "completed",
+    "geminiResponse": {
+      "text": "Análise da imagem de obra detectou:\n\n1. **Estrutura Identificada**: Sistema de drenagem pluvial em instalação.\n\n2. **Elementos Detectados**:\n   - Tubulações de drenagem instaladas\n   - Caixas de inspeção em construção\n   - Valas abertas para passagem de tubos\n   - Trabalhadores executando instalação\n\n3. **Fase da Obra**: Infraestrutura - Drenagem\n\n4. **Condições Observadas**:\n   - Trabalho em condições de chuva (atenção redobrada)\n   - EPIs adequados para condições úmidas\n   - Sistema de bombeamento provisório ativo\n\n5. **Estimativa de Progresso**: Aproximadamente 60% da drenagem concluída\n\n6. **Recomendações**:\n   - Verificar declividade das tubulações\n   - Testar estanqueidade das conexões\n   - Atenção especial devido às condições climáticas\n   - Proteger valas abertas",
+      "confidence": 0.86
+    },
+    "detectedElements": [
+      {
+        "type": "tubulacao",
+        "description": "Tubulações de drenagem",
+        "confidence": 0.91,
+        "boundingBox": null
+      },
+      {
+        "type": "caixa_inspecao",
+        "description": "Caixas de inspeção",
+        "confidence": 0.87,
+        "boundingBox": null
+      }
+    ],
+    "identifiedIssues": [
+      "Verificar declividade das tubulações",
+      "Proteger valas abertas devido à chuva",
+      "Testar estanqueidade"
+    ],
+    "progressEstimate": 60.0,
+    "comparisonWithBIM": "Sistema de drenagem conforme projeto. Posicionamento correto das caixas.",
+    "deviations": {
+      "critical": [],
+      "moderate": ["Declividade da tubulação T-12 ligeiramente abaixo do especificado (0.3%)"],
+      "minor": []
+    },
+    "createdAt": "2024-09-25T11:45:00.000Z"
+  },
+  {
+    "id": "analysis_007",
+    "imageRecordId": "img_007_acabamento_vilasonia",
+    "projectId": "proj_004_estacao_vila_sonia",
+    "analysisDate": "2024-08-15T15:10:00.000Z",
+    "status": "completed",
+    "geminiResponse": {
+      "text": "Análise da imagem de obra detectou:\n\n1. **Estrutura Identificada**: Estação em fase final de acabamento.\n\n2. **Elementos Detectados**:\n   - Revestimentos finalizados\n   - Pisos instalados\n   - Iluminação em funcionamento\n   - Áreas limpas e organizadas\n\n3. **Fase da Obra**: Acabamento final\n\n4. **Condições Observadas**:\n   - Excelente qualidade de acabamento\n   - Limpeza e organização impecáveis\n   - Obra praticamente concluída\n   - Preparação para entrega\n\n5. **Estimativa de Progresso**: 95-98% da obra concluída\n\n6. **Recomendações**:\n   - Realizar vistoria final detalhada\n   - Verificar todos os sistemas (elétrico, hidráulico, HVAC)\n   - Documentar as-built\n   - Preparar manual de operação",
+      "confidence": 0.95
+    },
+    "detectedElements": [
+      {
+        "type": "revestimento",
+        "description": "Revestimentos finalizados",
+        "confidence": 0.96,
+        "boundingBox": null
+      },
+      {
+        "type": "iluminacao",
+        "description": "Sistema de iluminação funcionando",
+        "confidence": 0.93,
+        "boundingBox": null
+      },
+      {
+        "type": "piso",
+        "description": "Pisos instalados e limpos",
+        "confidence": 0.97,
+        "boundingBox": null
+      }
+    ],
+    "identifiedIssues": [],
+    "progressEstimate": 96.5,
+    "comparisonWithBIM": "Obra 100% conforme modelo BIM. Todos os elementos instalados conforme projeto.",
+    "deviations": {
+      "critical": [],
+      "moderate": [],
+      "minor": []
+    },
+    "createdAt": "2024-08-15T15:10:00.000Z"
+  },
+  {
+    "id": "analysis_008",
+    "imageRecordId": "img_008_sinalizacao_vilasonia",
+    "projectId": "proj_004_estacao_vila_sonia",
+    "analysisDate": "2024-08-20T10:40:00.000Z",
+    "status": "completed",
+    "geminiResponse": {
+      "text": "Análise da imagem de obra detectou:\n\n1. **Estrutura Identificada**: Sinalização e comunicação visual da estação.\n\n2. **Elementos Detectados**:\n   - Placas de sinalização instaladas\n   - Comunicação visual completa\n   - Mapas e informações ao usuário\n   - Sinalização de emergência\n\n3. **Fase da Obra**: Finalização - Sinalização\n\n4. **Condições Observadas**:\n   - Sinalização clara e bem posicionada\n   - Conformidade com normas de acessibilidade\n   - Iluminação adequada para leitura\n   - Sistema de informação ao usuário funcionando\n\n5. **Estimativa de Progresso**: 100% da obra concluída\n\n6. **Recomendações**:\n   - Obra concluída e pronta para operação\n   - Realizar treinamento de equipe operacional\n   - Documentar entrega técnica\n   - Iniciar período de testes operacionais",
+      "confidence": 0.97
+    },
+    "detectedElements": [
+      {
+        "type": "sinalizacao",
+        "description": "Placas e sinalização visual",
+        "confidence": 0.98,
+        "boundingBox": null
+      },
+      {
+        "type": "acessibilidade",
+        "description": "Sinalização tátil e visual para acessibilidade",
+        "confidence": 0.95,
+        "boundingBox": null
+      }
+    ],
+    "identifiedIssues": [],
+    "progressEstimate": 100.0,
+    "comparisonWithBIM": "Sinalização 100% conforme projeto e normas ABNT. Obra concluída.",
+    "deviations": {
+      "critical": [],
+      "moderate": [],
+      "minor": []
+    },
+    "createdAt": "2024-08-20T10:40:00.000Z"
+  }
+]

@@ -4,7 +4,10 @@ import '../../services/alert_service.dart';
 import '../../models/alert_model.dart';
 
 class AlertsScreen extends StatefulWidget {
-  const AlertsScreen({super.key});
+  final String? projectId;
+  final String? projectName;
+  
+  const AlertsScreen({super.key, this.projectId, this.projectName});
 
   @override
   State<AlertsScreen> createState() => _AlertsScreenState();
@@ -18,7 +21,9 @@ class _AlertsScreenState extends State<AlertsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Alertas'),
+        title: Text(widget.projectName != null 
+            ? 'Alertas - ${widget.projectName}' 
+            : 'Alertas'),
         backgroundColor: AppConfig.primaryColor,
         foregroundColor: Colors.white,
       ),
@@ -48,9 +53,11 @@ class _AlertsScreenState extends State<AlertsScreen> {
           // Lista de alertas
           Expanded(
             child: StreamBuilder<List<AlertModel>>(
-              stream: _selectedFilter == 'all'
-                  ? _alertService.getAllAlerts()
-                  : _alertService.getAlerts(severity: _selectedFilter),
+              stream: widget.projectId != null
+                  ? _alertService.getProjectAlerts(widget.projectId!)
+                  : (_selectedFilter == 'all'
+                      ? _alertService.getAllAlerts()
+                      : _alertService.getAlerts(severity: _selectedFilter)),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());

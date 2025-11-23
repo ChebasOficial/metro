@@ -6,6 +6,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/analysis_model.dart';
 import '../models/image_record_model.dart';
+import 'demo_data_service.dart';
 
 class GeminiService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -199,27 +200,51 @@ class GeminiService {
     }
   }
 
-  // Obter análises de um projeto
-  Stream<List<AnalysisModel>> getProjectAnalyses(String projectId) {
-    return _firestore
+  // Obter análises de um projeto (Firebase + Demo)
+  Stream<List<AnalysisModel>> getProjectAnalyses(String projectId) async* {
+    // Carregar dados de demonstração
+    final demoService = DemoDataService();
+    if (!demoService.isLoaded) {
+      await demoService.loadDemoData();
+    }
+    final demoAnalyses = demoService.demoAnalyses
+        .where((analysis) => analysis.projectId == projectId)
+        .toList();
+    
+    // Combinar com análises do Firebase
+    await for (final snapshot in _firestore
         .collection('analyses')
         .where('projectId', isEqualTo: projectId)
         .orderBy('analysisDate', descending: true)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => AnalysisModel.fromFirestore(doc))
-            .toList());
+        .snapshots()) {
+      final firebaseAnalyses = snapshot.docs
+          .map((doc) => AnalysisModel.fromFirestore(doc))
+          .toList();
+      
+      yield [...demoAnalyses, ...firebaseAnalyses];
+    }
   }
 
-  // Obter todas as análises
-  Stream<List<AnalysisModel>> getAllAnalyses() {
-    return _firestore
+  // Obter todas as análises (Firebase + Demo)
+  Stream<List<AnalysisModel>> getAllAnalyses() async* {
+    // Carregar dados de demonstração
+    final demoService = DemoDataService();
+    if (!demoService.isLoaded) {
+      await demoService.loadDemoData();
+    }
+    final demoAnalyses = demoService.demoAnalyses;
+    
+    // Combinar com análises do Firebase
+    await for (final snapshot in _firestore
         .collection('analyses')
         .orderBy('analysisDate', descending: true)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => AnalysisModel.fromFirestore(doc))
-            .toList());
+        .snapshots()) {
+      final firebaseAnalyses = snapshot.docs
+          .map((doc) => AnalysisModel.fromFirestore(doc))
+          .toList();
+      
+      yield [...demoAnalyses, ...firebaseAnalyses];
+    }
   }
 
   // Comparar duas imagens (progresso temporal)

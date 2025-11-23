@@ -127,7 +127,11 @@ class DemoDataService {
       }).toList().cast<AlertModel>();
 
       _isLoaded = true;
-      print('✅ Dados demo: ${_demoProjects!.length} projetos, ${_demoImages!.length} imagens, ${_demoAlerts!.length} alertas');
+      print('✅ Dados demo carregados:');
+      print('   - ${_demoProjects!.length} projetos');
+      print('   - ${_demoImages!.length} imagens');
+      print('   - ${_demoAnalyses!.length} análises');
+      print('   - ${_demoAlerts!.length} alertas');
     } catch (e) {
       print('❌ Erro ao carregar dados demo: $e');
       _demoProjects = [];

@@ -94,5 +94,101 @@
     "analysisId": "analysis_004",
     "createdAt": "2024-10-25T16:00:00.000Z",
     "updatedAt": "2024-10-25T16:05:00.000Z"
+  },
+  {
+    "id": "img_005_terraplanagem_jabaquara",
+    "projectId": "proj_003_patio_jabaquara",
+    "capturePointId": "cp_jab_terra_01",
+    "imageUrl": "data:image/jpeg;base64,<BASE64_OBRA1>",
+    "thumbnailUrl": "data:image/jpeg;base64,<BASE64_OBRA1>",
+    "imageBase64": "<BASE64_OBRA1>",
+    "captureDate": "2024-09-10T08:00:00.000Z",
+    "capturedBy": "demo_user",
+    "capturedByName": "teste",
+    "latitude": -23.6478,
+    "longitude": -46.6425,
+    "constructionPhase": "Terraplanagem",
+    "metadata": {
+      "weather": "Ensolarado",
+      "temperature": "24°C",
+      "camera": "iPhone 14 Pro",
+      "notes": "Preparação do terreno para pátio de manobras"
+    },
+    "analysisStatus": "completed",
+    "analysisId": "analysis_005",
+    "createdAt": "2024-09-10T08:00:00.000Z",
+    "updatedAt": "2024-09-10T08:15:00.000Z"
+  },
+  {
+    "id": "img_006_drenagem_jabaquara",
+    "projectId": "proj_003_patio_jabaquara",
+    "capturePointId": "cp_jab_dren_01",
+    "imageUrl": "data:image/jpeg;base64,<BASE64_OBRA2>",
+    "thumbnailUrl": "data:image/jpeg;base64,<BASE64_OBRA2>",
+    "imageBase64": "<BASE64_OBRA2>",
+    "captureDate": "2024-09-25T11:30:00.000Z",
+    "capturedBy": "demo_user",
+    "capturedByName": "teste",
+    "latitude": -23.6478,
+    "longitude": -46.6425,
+    "constructionPhase": "Drenagem",
+    "metadata": {
+      "weather": "Chuvoso",
+      "temperature": "18°C",
+      "camera": "Samsung Galaxy S23",
+      "notes": "Sistema de drenagem pluvial em instalação"
+    },
+    "analysisStatus": "completed",
+    "analysisId": "analysis_006",
+    "createdAt": "2024-09-25T11:30:00.000Z",
+    "updatedAt": "2024-09-25T11:45:00.000Z"
+  },
+  {
+    "id": "img_007_acabamento_vilasonia",
+    "projectId": "proj_004_estacao_vila_sonia",
+    "capturePointId": "cp_vs_acab_01",
+    "imageUrl": "data:image/jpeg;base64,<BASE64_OBRA3>",
+    "thumbnailUrl": "data:image/jpeg;base64,<BASE64_OBRA3>",
+    "imageBase64": "<BASE64_OBRA3>",
+    "captureDate": "2024-08-15T15:00:00.000Z",
+    "capturedBy": "demo_user",
+    "capturedByName": "teste",
+    "latitude": -23.6089,
+    "longitude": -46.7386,
+    "constructionPhase": "Acabamento",
+    "metadata": {
+      "weather": "Ensolarado",
+      "temperature": "26°C",
+      "camera": "Canon EOS R5",
+      "notes": "Acabamentos finais da estação concluída"
+    },
+    "analysisStatus": "completed",
+    "analysisId": "analysis_007",
+    "createdAt": "2024-08-15T15:00:00.000Z",
+    "updatedAt": "2024-08-15T15:10:00.000Z"
+  },
+  {
+    "id": "img_008_sinalizacao_vilasonia",
+    "projectId": "proj_004_estacao_vila_sonia",
+    "capturePointId": "cp_vs_sinal_01",
+    "imageUrl": "data:image/jpeg;base64,<BASE64_OBRA4>",
+    "thumbnailUrl": "data:image/jpeg;base64,<BASE64_OBRA4>",
+    "imageBase64": "<BASE64_OBRA4>",
+    "captureDate": "2024-08-20T10:30:00.000Z",
+    "capturedBy": "demo_user",
+    "capturedByName": "teste",
+    "latitude": -23.6089,
+    "longitude": -46.7386,
+    "constructionPhase": "Sinalização",
+    "metadata": {
+      "weather": "Parcialmente nublado",
+      "temperature": "23°C",
+      "camera": "iPhone 14 Pro",
+      "notes": "Instalação de sinalização e comunicação visual"
+    },
+    "analysisStatus": "completed",
+    "analysisId": "analysis_008",
+    "createdAt": "2024-08-20T10:30:00.000Z",
+    "updatedAt": "2024-08-20T10:40:00.000Z"
   }
 ]
