@@ -334,8 +334,10 @@ class _ImageDetailScreenState extends State<_ImageDetailScreen> {
                     _getStatusLabel(widget.image.analysisStatus),
                   ),
                   // Mostrar motivo da falha se houver
-                  if (widget.image.analysisStatus == 'failed' && widget.image.metadata?['error'] != null) ..[
-                    const SizedBox(height: AppConfig.paddingSmall)],
+                  const SizedBox(height: AppConfig.paddingSmall),
+                  if (widget.image.analysisStatus == 'failed' && 
+                      widget.image.metadata != null && 
+                      widget.image.metadata!['error'] != null)
                     Container(
                       padding: const EdgeInsets.all(AppConfig.paddingNormal),
                       decoration: BoxDecoration(
@@ -369,15 +371,15 @@ class _ImageDetailScreenState extends State<_ImageDetailScreen> {
                         ],
                       ),
                     ),
-                  ],
-                  if (widget.image.latitude != null && widget.image.longitude != null) ...[
-                    const SizedBox(height: AppConfig.paddingNormal),
-                    _buildInfoRow(
-                      Icons.location_on,
-                      'Localização',
-                      '${widget.image.latitude}, ${widget.image.longitude}',
+                  if (widget.image.latitude != null && widget.image.longitude != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppConfig.paddingNormal),
+                      child: _buildInfoRow(
+                        Icons.location_on,
+                        'Localização',
+                        '${widget.image.latitude}, ${widget.image.longitude}',
+                      ),
                     ),
-                  ],
                   // Botões de ação
                   const SizedBox(height: AppConfig.paddingLarge),
                   if (widget.image.analysisStatus == 'failed' || widget.image.analysisStatus == 'pending')
